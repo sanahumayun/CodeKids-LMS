@@ -1,0 +1,76 @@
+/* Global Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f7f7f7;
+    color: #333;
+    line-height: 1.5;
+  }
+  
+  button {
+    cursor: pointer;
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+  }
+  
+  button:hover {
+    background-color: #45a049;
+  }
+  
+  a {
+    text-decoration: none;
+  }
+  
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+  
+  h1, h2, h3 {
+    color: #333;
+    font-weight: 600;
+  }
+  
+  nav {
+    background-color: #0073e6;
+    padding: 15px;
+    border-radius: 8px;
+  }
+  
+  nav a {
+    color: white;
+    margin: 0 15px;
+    font-weight: bold;
+    font-size: 16px;
+  }
+  
+  nav a:hover {
+    text-decoration: underline;
+  }
+  
+  /* Mobile Responsiveness */
+  @media (max-width: 768px) {
+    nav {
+      padding: 10px;
+    }
+  
+    nav a {
+      display: block;
+      margin: 10px 0;
+      text-align: center;
+    }
+  
+    .container {
+      padding: 10px;
+    }
+  }
+  

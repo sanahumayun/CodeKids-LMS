@@ -1,0 +1,23 @@
+/* Instructor Reviews */
+.instructor-reviews {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  .instructor-reviews .review-card {
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .instructor-reviews .review-card h3 {
+    margin-bottom: 15px;
+    color: #0073e6;
+  }
+  
+  .instructor-reviews .review-card p {
+    color: #555;
+  }
+  

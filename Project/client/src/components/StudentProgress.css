@@ -1,0 +1,36 @@
+/* Student Progress */
+.student-progress {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  .student-progress .progress-card {
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .student-progress .progress-card h3 {
+    margin-bottom: 15px;
+    color: #0073e6;
+  }
+  
+  .student-progress .progress-card p {
+    color: #555;
+  }
+  
+  .student-progress .progress-card .progress-bar {
+    background-color: #f3f3f3;
+    height: 10px;
+    border-radius: 5px;
+    overflow: hidden;
+  }
+  
+  .student-progress .progress-card .progress-bar span {
+    display: block;
+    height: 100%;
+    background-color: #4CAF50;
+  }
+  

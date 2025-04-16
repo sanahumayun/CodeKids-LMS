@@ -1,0 +1,36 @@
+/* Tutor View Progress */
+.tutor-progress {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  .tutor-progress .progress-card {
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .tutor-progress .progress-card h3 {
+    margin-bottom: 15px;
+    color: #0073e6;
+  }
+  
+  .tutor-progress .progress-card p {
+    color: #555;
+  }
+  
+  .tutor-progress .progress-card .progress-bar {
+    background-color: #f3f3f3;
+    height: 10px;
+    border-radius: 5px;
+    overflow: hidden;
+  }
+  
+  .tutor-progress .progress-card .progress-bar span {
+    display: block;
+    height: 100%;
+    background-color: #4CAF50;
+  }
+  

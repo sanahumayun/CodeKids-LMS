@@ -1,0 +1,43 @@
+/* Student Course View */
+.student-course-view {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+  
+  .student-course-card {
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 8px;
+    width: 30%;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .student-course-card h3 {
+    margin-bottom: 15px;
+    color: #0073e6;
+  }
+  
+  .student-course-card p {
+    color: #555;
+  }
+  
+  .student-course-card button {
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    width: 100%;
+  }
+  
+  .student-course-card button:hover {
+    background-color: #45a049;
+  }
+  
+  @media (max-width: 768px) {
+    .student-course-card {
+      width: 100%;
+    }
+  }
+  
