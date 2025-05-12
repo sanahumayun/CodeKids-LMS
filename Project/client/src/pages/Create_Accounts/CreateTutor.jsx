@@ -3,7 +3,6 @@
 import { useState } from "react"
 import axios from "axios"
 import { useNavigate } from "react-router-dom"
-import "./CreateTutor.css"
 import { toast } from 'react-toastify';
 
 const CreateTutor = () => {
@@ -29,12 +28,16 @@ const CreateTutor = () => {
   }
 
   return (
-    <div className="create-tutor-container">
-      <button onClick={() => navigate("/admin-dashboard")} className="back-button">
-        BACK
+    <div className="container">
+      <button 
+        onClick={() => navigate("/admin-dashboard")} 
+        className="button button-secondary"
+      >
+        ← Back
       </button>
-      <form onSubmit={handleSubmit} className="tutor-form">
-        <h2 className="form-title">Create Tutor Profile</h2>
+
+      <form onSubmit={handleSubmit} className="card">
+        <h2 className="auth-title">Create Tutor Profile</h2>
         <div className="form-group">
           <input
             name="name"
@@ -57,7 +60,7 @@ const CreateTutor = () => {
             className="form-input"
           />
         </div>
-        <button type="submit" className="submit-button">
+        <button type="submit" className="button button-primary">
           Create Tutor
         </button>
       </form>

@@ -2,7 +2,6 @@
 
 import { useState } from "react"
 import axios from "axios"
-import "./Login.css"
 
 const Login = () => {
   const [form, setForm] = useState({ email: "", password: "" })
@@ -34,11 +33,16 @@ const Login = () => {
   }
 
   return (
-    <div className="login-container">
-      <form onSubmit={handleSubmit} className="login-form">
-        <h2 className="login-title">Login</h2>
+    <div className="container auth-container">
+      <form onSubmit={handleSubmit} className="card">
+        <h2 className="auth-title">Login</h2>
         <div className="form-group">
-          <input name="email" placeholder="Email" onChange={handleChange} className="form-input" />
+          <input 
+            name="email" 
+            placeholder="Email" 
+            onChange={handleChange} 
+            className="form-input" 
+          />
         </div>
         <div className="form-group">
           <input
@@ -49,7 +53,7 @@ const Login = () => {
             className="form-input"
           />
         </div>
-        <button type="submit" className="login-button">
+        <button type="submit" className="button button-primary">
           Log In
         </button>
       </form>

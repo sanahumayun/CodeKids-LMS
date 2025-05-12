@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react"
 import axios from "axios"
-import "./TutorCourseView.css"
 import { toast } from 'react-toastify';
 
 const TutorCourseView = () => {
@@ -15,7 +14,7 @@ const TutorCourseView = () => {
   useEffect(() => {
     const fetchTeachingCourses = async () => {
       try {
-        const res = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/courses/tutor-course-view`, { withCredentials: true })
+        const res = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/courses/tutor/courses`, { withCredentials: true })
         setCourses(res.data)
         setLoading(false)
       } catch (err) {
@@ -48,7 +47,7 @@ const TutorCourseView = () => {
       }
 
       const res = await axios.post(
-        `${process.env.REACT_APP_API_BASE_URL}/courses/tutor-upload-assignment/${courseId}`,
+        `${process.env.REACT_APP_API_BASE_URL}/courses/tutor/courses/upload-assignment/${courseId}`,
         { title, description, dueDate },
         { withCredentials: true },
       )
@@ -65,7 +64,7 @@ const TutorCourseView = () => {
   if (error) return <p className="error-message">{error}</p>
 
   return (
-    <div className="tutor-course-container">
+    <div className="container">
       <h2 className="page-title">My Teaching Courses</h2>
 
       {courses.length === 0 ? (

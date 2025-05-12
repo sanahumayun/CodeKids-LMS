@@ -222,3 +222,78 @@ exports.uploadAssignment = async (req, res) => {
     res.status(500).json({ error: 'Failed to upload assignment', details: err.message });
   }
 };
+
+exports.getTutorCourseDetail = async (req, res) => {
+  try {
+    const { courseId } = req.params;
+
+    const course = await Course.findById(courseId)
+      .populate('studentsEnrolled', 'name email')
+      .populate('assignments');
+
+    if (!course) {
+      return res.status(404).json({ error: 'Course not found' });
+    }
+
+    // Optional: Check if tutor owns the course
+    if (course.instructorId.toString() !== req.user.id) {
+      return res.status(403).json({ error: 'You are not authorized to view this course' });
+    }
+
+    res.status(200).json(course);
+  } catch (err) {
+    console.error('Error fetching tutor course detail:', err);
+    res.status(500).json({ error: 'Failed to fetch course details', details: err.message });
+  }
+};
+
+exports.updateCourseStatus = async (req, res) => {
+  try {
+    const { courseId } = req.params;
+    const { status } = req.body;
+
+    const course = await Course.findById(courseId);
+    if (!course) {
+      return res.status(404).json({ error: 'Course not found' });
+    }
+
+    if (course.instructorId.toString() !== req.user.id) {
+      return res.status(403).json({ error: 'You are not authorized to update this course' });
+    }
+
+    course.status = status;
+    await course.save();
+
+    res.status(200).json({ message: 'Course status updated', course });
+  } catch (err) {
+    console.error('Error updating course status:', err);
+    res.status(500).json({ error: 'Failed to update course status', details: err.message });
+  }
+};
+
+exports.getStudentCourseDetail = async (req, res) => {
+  try {
+    const { courseId } = req.params;
+
+    // Fetch course details for the student
+    const course = await Course.findById(courseId)
+      .populate('instructorId', 'name email')
+      .populate('assignments')
+      .populate('studentsEnrolled', 'name email');
+
+    if (!course) {
+      return res.status(404).json({ error: 'Course not found' });
+    }
+
+    // Optional: Check if the student is enrolled in the course
+    if (!course.studentsEnrolled.some(student => student._id.toString() === req.user.id)) {
+      return res.status(403).json({ error: 'You are not enrolled in this course' });
+    }
+
+    res.status(200).json(course);
+  } catch (err) {
+    console.error('Error fetching student course detail:', err);
+    res.status(500).json({ error: 'Failed to fetch course details', details: err.message });
+  }
+};
+

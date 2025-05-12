@@ -51,8 +51,8 @@ mongoose.connection.once('open', async () => {
 app.use('/api/auth', authRoutes);
 app.use('/api/users', require('./routes/userRoutes'));
 app.use("/api/courses", require("./routes/courseRoutes"));
-app.use('/api/assignments', require("./routes/assignmentRoutes"));
-app.use("/api/submission", require("./routes/submissionRoutes"));
+app.use('/api/courses', require("./routes/assignmentRoutes"));
+app.use("/api/courses", require("./routes/submissionRoutes"));
 app.use("/api/reviews", require("./routes/reviewRoutes"));
 
 const server = http.createServer(app);
