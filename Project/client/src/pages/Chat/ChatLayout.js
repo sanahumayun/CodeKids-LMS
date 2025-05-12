@@ -1,6 +1,7 @@
-// // client/src/components/ChatLayout.js
+
+
 // import React, { useState, useEffect } from 'react';
-// import { useChatContext } from '../context/ChatContext';
+// import { useChatContext } from '../../../src/ChatContext';
 // import ChatSidebar from './ChatSidebar';
 // import ChatWindow from './ChatWindow';
 // import LoginChat from './LoginChat';
@@ -11,7 +12,6 @@
 //   const [isMobileView, setIsMobileView] = useState(window.innerWidth < 768);
 //   const [showSidebar, setShowSidebar] = useState(true);
 
-//   // Handle responsive design
 //   useEffect(() => {
 //     const handleResize = () => {
 //       const mobile = window.innerWidth < 768;
@@ -25,7 +25,6 @@
 //     return () => window.removeEventListener('resize', handleResize);
 //   }, []);
 
-//   // If user is not logged in, show login screen
 //   if (!currentUser) {
 //     return <LoginChat />;
 //   }
@@ -51,17 +50,14 @@
 // };
 
 // export default ChatLayout;
-
 // client/src/components/ChatLayout.js
 import React, { useState, useEffect } from 'react';
 import { useChatContext } from '../../../src/ChatContext';
 import ChatSidebar from './ChatSidebar';
 import ChatWindow from './ChatWindow';
-import LoginChat from './LoginChat';
 import './ChatLayout.css';
 
 const ChatLayout = () => {
-  const { currentUser } = useChatContext();
   const [isMobileView, setIsMobileView] = useState(window.innerWidth < 768);
   const [showSidebar, setShowSidebar] = useState(true);
 
@@ -77,10 +73,6 @@ const ChatLayout = () => {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
-
-  if (!currentUser) {
-    return <LoginChat />;
-  }
 
   return (
     <div className="chat-layout">

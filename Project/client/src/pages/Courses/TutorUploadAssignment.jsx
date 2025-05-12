@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import axios from "axios"
 import "./TutorCourseView.css"
+import { toast } from 'react-toastify';
 
 const TutorCourseView = () => {
   const [courses, setCourses] = useState([])
@@ -14,7 +15,7 @@ const TutorCourseView = () => {
   useEffect(() => {
     const fetchTeachingCourses = async () => {
       try {
-        const res = await axios.get("/api/courses/tutor-course-view", { withCredentials: true })
+        const res = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/courses/tutor-course-view`, { withCredentials: true })
         setCourses(res.data)
         setLoading(false)
       } catch (err) {
@@ -42,21 +43,21 @@ const TutorCourseView = () => {
       const { title, description, dueDate } = formData[courseId] || {}
 
       if (!title || !description || !dueDate) {
-        alert("Please fill all assignment fields.")
+        toast.error("Please fill all assignment fields.")
         return
       }
 
       const res = await axios.post(
-        `/api/courses/tutor-upload-assignment/${courseId}`,
+        `${process.env.REACT_APP_API_BASE_URL}/courses/tutor-upload-assignment/${courseId}`,
         { title, description, dueDate },
         { withCredentials: true },
       )
 
       setSuccessMsg((prev) => ({ ...prev, [courseId]: "Assignment uploaded!" }))
-      setFormData((prev) => ({ ...prev, [courseId]: {} })) // Clear form
+      setFormData((prev) => ({ ...prev, [courseId]: {} })) 
     } catch (err) {
       console.error("Upload failed:", err.response?.data || err.message)
-      alert("Failed to upload assignment.")
+      toast.error("Failed to upload assignment.")
     }
   }
 

@@ -1,4 +1,4 @@
-"use client"
+import React from "react";
 import { Link, useNavigate } from "react-router-dom"
 import "./TutorDashboard.css"
 
@@ -11,31 +11,33 @@ const TutorDashboard = () => {
   }
 
   return (
-    <div className="tutor-dashboard">
-      <div className="dashboard-container">
-        <h2 className="dashboard-title">👨‍🏫 Tutor Dashboard</h2>
+    <div className="dashboard-layout">
+      <aside className="sidebar">
+        <h2 className="sidebar-title">Tutor</h2>
+        <nav className="sidebar-nav">
+          <Link to="/courses/tutor-course-view" className="nav-link">My Teaching Courses</Link>
 
-        <ul className="dashboard-menu">
-          <li className="menu-item">
-            <Link to="/courses/tutor-course-view" className="menu-link course-link">
-              <span className="menu-icon">📘</span>
-              <span className="menu-text">My Teaching Courses</span>
-            </Link>
-          </li>
-          <li className="menu-item">
-            <Link to="/courses/tutor-upload-assignment" className="menu-link upload-link">
-              <span className="menu-icon">📝</span>
-              <span className="menu-text">Upload Assignments</span>
-            </Link>
-          </li>
-        </ul>
+          <Link to="/tutor-progress" className="nav-link">View Students Progress</Link>
 
-        <button onClick={handleLogout} className="logout-button">
-          <span className="logout-icon">🚪</span> Logout
-        </button>
-      </div>
+          <Link to="/chat" className="nav-link">
+            Chat with Student
+          </Link>
+
+          <button className="logout-button" onClick={handleLogout}>Logout</button>
+        </nav>
+      </aside>
+
+      <main className="dashboard-main">
+        <h1 className="dashboard-heading">Tutor Dashboard</h1>
+
+        <div className="analytics-cards">
+          <div className="analytics-card">Weekly Schedule: --</div>
+          <div className="analytics-card">Student Reviews: --</div>
+          <div className="analytics-card">Enrolled Students: --</div>
+        </div>
+      </main>
     </div>
-  )
-}
+  );
+};
 
-export default TutorDashboard
+export default TutorDashboard;

@@ -1,5 +1,5 @@
 /* client/src/components/ChatWindow.css */
-.chat-window {
+/* .chat-window {
     display: flex;
     flex-direction: column;
     height: 100%;
@@ -144,4 +144,18 @@
     text-align: center;
     color: #888;
     font-size: 14px;
-  }
+  } */
+/* Add to ChatWindow.css */
+.room-topic {
+  font-size: 12px;
+  color: #666;
+  display: block;
+  margin-top: 4px;
+}
+
+.message-sender {
+  font-size: 12px;
+  font-weight: bold;
+  margin-bottom: 4px;
+  color: #555;
+}

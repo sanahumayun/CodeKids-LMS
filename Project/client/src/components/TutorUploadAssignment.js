@@ -17,9 +17,9 @@ const TutorUploadAssignment = () => {
     e.preventDefault();
     try {
       await createAssignment({ courseId, title, description, dueDate });
-      alert('Assignment uploaded!');
+      toast.success('Assignment uploaded!');
     } catch (err) {
-      alert('Error uploading assignment: ' + err.message);
+      toast.error('Error uploading assignment: ' + err.message);
     }
   };
 

@@ -10,7 +10,7 @@ const TutorProgress = () => {
   useEffect(() => {
     getCourses()
       .then(res => setCourses(res.data))
-      .catch(() => alert('Failed to load courses'));
+      .catch(() => toast.error('Failed to load courses'));
   }, []);
 
   const handleSelect = async (e) => {
@@ -20,7 +20,7 @@ const TutorProgress = () => {
       const res = await getTutorProgress(courseId);
       setSubmissions(res.data);
     } catch {
-      alert('Failed to load submissions');
+      toast.error('Failed to load submissions');
     }
   };
 

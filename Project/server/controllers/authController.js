@@ -1,10 +1,16 @@
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
+const verifyEmailExists = require("../utils/emailValidator");
 
 exports.signup = async (req, res) => {
-  const { name, email, password, role } = req.body;
+    const { name, email, password, role } = req.body;
+    
+    try {
+    const isValid = await verifyEmailExists(email);
+    if (!isValid) {
+      return res.status(400).json({ error: "Please provide a valid, working email address." });
+    }
 
-  try {
     const userExists = await User.findOne({ email });
     if (userExists) return res.status(400).json({ error: 'Email already exists' });
 
@@ -30,14 +36,12 @@ exports.login = async (req, res) => {
       return res.status(400).json({ error: 'Invalid credentials' });
     }
 
-    // Create JWT token
     const token = jwt.sign(
       { id: user._id, role: user.role },
       process.env.JWT_SECRET,
       { expiresIn: '1h' }
     );
 
-    // Return full user info + token
     res.json({
       token,
       user: {
@@ -52,3 +56,5 @@ exports.login = async (req, res) => {
     res.status(500).json({ error: 'Server error' });
   }
 };
+
+

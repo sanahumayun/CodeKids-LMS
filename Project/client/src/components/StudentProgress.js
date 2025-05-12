@@ -8,7 +8,7 @@ const StudentProgress = () => {
   useEffect(() => {
     getStudentProgress()
       .then(res => setSubmissions(res.data))
-      .catch(() => alert("Failed to fetch student progress"));
+      .catch(() => toast.error("Failed to fetch student progress"));
   }, []);
  
   return (

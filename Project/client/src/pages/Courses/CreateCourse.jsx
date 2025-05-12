@@ -1,98 +1,93 @@
-"use client"
-
-import { useState, useEffect } from "react"
-import axios from "axios"
-import { useNavigate } from "react-router-dom"
-import "./CreateCourse.css"
+import { useState, useEffect } from "react";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import "./CreateCourse.css";
 
 const CreateCourse = () => {
-  const [title, setTitle] = useState("")
-  const [description, setDescription] = useState("")
-  const [instructorId, setInstructorId] = useState("")
-  const [instructors, setInstructors] = useState([])
-  const [successMessage, setSuccessMessage] = useState("")
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [instructorId, setInstructorId] = useState("");
+  const [instructors, setInstructors] = useState([]);
+  const [successMessage, setSuccessMessage] = useState("");
 
-  const token = localStorage.getItem("authToken")
+  const token = localStorage.getItem("authToken");
   const config = {
     headers: {
       Authorization: `Bearer ${token}`,
     },
-  }
+  };
 
   useEffect(() => {
     const fetchInstructors = async () => {
-      console.log("📡 Fetching instructors...")
       try {
-        const res = await axios.get("/api/users?role=tutor")
-        console.log("✅ Instructors fetched:", res.data)
-        setInstructors(res.data)
+        const res = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/users?role=tutor`);
+        setInstructors(res.data);
       } catch (err) {
-        console.error("❌ Failed to fetch instructors:", err.response?.data || err.message)
+        console.error("Error fetching instructors:", err.response?.data || err.message);
       }
-    }
+    };
 
-    fetchInstructors()
-  }, [])
+    fetchInstructors();
+  }, []);
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
+    e.preventDefault();
     try {
       await axios.post(
-        "/api/courses",
-        {
-          title,
-          description,
-          instructorId,
-        },
-        config,
-      )
+        `${process.env.REACT_APP_API_BASE_URL}/courses`,
+        { title, description, instructorId },
+        config
+      );
 
-      setTitle("")
-      setDescription("")
-      setInstructorId("")
-      setSuccessMessage("Course created successfully!")
+      setTitle("");
+      setDescription("");
+      setInstructorId("");
+      setSuccessMessage("✅ Course and chatroom created successfully!");
     } catch (err) {
-      console.error("Failed to create course", err)
-      setSuccessMessage("Failed to create course.")
+      console.error("Course creation failed:", err);
+      setSuccessMessage("❌ Failed to create course.");
     }
-  }
+  };
 
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   return (
-    <div>
-      <button onClick={() => navigate(-1)}>🔙 Back</button>
-      <div className="p-4">
-        <h2 className="text-xl font-bold mb-4">Create a New Course</h2>
+    <div className="create-course-page">
+      <div className="course-form-card">
+        <button className="back-button" onClick={() => navigate(-1)}>
+          ← Back
+        </button>
+        <h2 className="form-title">Create a New Course</h2>
 
-        {successMessage && <p className="mb-2 text-green-600">{successMessage}</p>}
+        {successMessage && (
+          <p className={`feedback-message ${successMessage.startsWith("✅") ? "success" : "error"}`}>
+            {successMessage}
+          </p>
+        )}
 
-        <form onSubmit={handleSubmit} className="space-y-4 max-w-md">
-          <div>
-            <label className="block font-medium">Title</label>
+        <form onSubmit={handleSubmit} className="course-form">
+          <div className="form-group">
+            <label>Title</label>
             <input
               type="text"
-              className="w-full border p-2 rounded"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               required
             />
           </div>
 
-          <div>
-            <label className="block font-medium">Description</label>
+          <div className="form-group">
+            <label>Description</label>
             <textarea
-              className="w-full border p-2 rounded"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               required
             />
           </div>
 
-          <div>
-            <label className="block font-medium">Assign Instructor</label>
+          <div className="form-group">
+            <label>Assign Instructor</label>
             <select
-              className="w-full border p-2 rounded"
               value={instructorId}
               onChange={(e) => setInstructorId(e.target.value)}
               required
@@ -106,13 +101,13 @@ const CreateCourse = () => {
             </select>
           </div>
 
-          <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+          <button type="submit" className="submit-button">
             Create Course
           </button>
         </form>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default CreateCourse
+export default CreateCourse;

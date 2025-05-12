@@ -1,32 +1,92 @@
-const Course = require('../models/Course');
-const User = require('../models/User');
 
-// 1. Get ALL public courses (no auth required)
+const Assignment = require('../models/Assignment');
+const Course = require('../models/Course');
+const ChatRoom = require('../models/ChatRoom');
+
+const updateChatRoom = async (courseId, instructorId, students = []) => {
+  try {
+    console.log('🔧 Checking/creating chat room for course:', courseId);
+
+    let chatRoom = await ChatRoom.findOne({ courseId });
+
+    const studentParticipants = students.map(studentId => ({
+      userId: studentId,
+      role: 'student'
+    }));
+
+    if (!chatRoom) {
+      console.log('🆕 Creating new chat room for course:', courseId);
+
+      chatRoom = new ChatRoom({
+        courseId,
+        participants: [
+          { userId: instructorId, role: 'tutor' },
+          ...studentParticipants
+        ]
+      });
+
+    } else {
+      console.log('✅ Chat room already exists. Updating participants.');
+
+      const existingParticipantsMap = new Map(
+        chatRoom.participants.map(p => [p.userId.toString(), p])
+      );
+
+      for (const student of studentParticipants) {
+        if (!existingParticipantsMap.has(student.userId.toString())) {
+          existingParticipantsMap.set(student.userId.toString(), student);
+        }
+      }
+
+      chatRoom.participants = Array.from(existingParticipantsMap.values());
+    }
+
+    await chatRoom.save();
+    console.log('✅ Chat room saved:', chatRoom._id);
+
+    return chatRoom;
+
+  } catch (err) {
+    console.error('Error updating or creating chat room:', err);
+    throw err;
+  }
+};
+
 exports.getAllCourses = async (req, res) => {
   try {
     const courses = await Course.find({}, 'title description instructorId')
-      .populate('instructorId', 'name email') // only include name/email from user
-      .populate('studentsEnrolled', 'name email');
+      .populate('instructorId', 'name email') 
+      .populate('studentsEnrolled', 'name email')
+      .populate('assignments');
     res.status(200).json(courses);
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch courses' });
   }
 };
 
-
-// 2. Create a course (Instructor/Admin only)
 exports.createCourse = async (req, res) => {
   try {
     const { title, description, instructorId } = req.body;
+    
     const newCourse = await Course.create({ title, description, instructorId });
-    res.status(201).json(newCourse);
+    console.log('✅ Course created successfully:', newCourse.title);
+    
+    console.log('Calling updateChatRoom with:', newCourse._id, instructorId);
+    const chatRoom = await updateChatRoom(newCourse._id, instructorId);
+    console.log('✅ Chat room  created successfully for course:', newCourse.title);
+    
+    res.status(201).json({
+      success: true,
+      message: 'Course and chat room created successfully',
+      course: newCourse,
+      chatRoomId: chatRoom._id
+    });
   } catch (err) {
     console.log(err);
     res.status(500).json({ error: 'Failed to create course' });
   }
 };
 
-// In the getMyEnrolledCourses controller
 exports.getMyEnrolledCourses = async (req, res) => {
   try {
     if (req.user.role !== 'student') {
@@ -34,7 +94,8 @@ exports.getMyEnrolledCourses = async (req, res) => {
       return res.status(403).json({ error: 'Only students can fetch enrolled courses' });
     }
     const courses = await Course.find({ studentsEnrolled: req.user.id })
-      .populate('instructorId', 'name email');
+      .populate('instructorId', 'name email')
+      .populate('assignments');
     console.log('Courses fetched for student:', req.user.id);
     res.status(200).json(courses);
   } catch (err) {
@@ -45,7 +106,6 @@ exports.getMyEnrolledCourses = async (req, res) => {
 
 exports.getTutorCourses = async (req, res) => {
   try {
-    // Verify the user is a tutor
     if (req.user.role !== 'tutor') {
       console.error('User is not a tutor, role:', req.user.role);
       return res.status(403).json({ error: 'Only tutors can fetch their teaching courses' });
@@ -53,9 +113,9 @@ exports.getTutorCourses = async (req, res) => {
 
     const tutorId = req.user.id;
 
-    // Find courses with population if needed
     const courses = await Course.find({ instructorId: tutorId })
-      .populate('studentsEnrolled', 'name email'); // Optional: populate enrolled students
+      .populate('studentsEnrolled', 'name email')
+      .populate('assignments');
 
     if (!courses.length) {
       console.log(`No courses found for tutor: ${tutorId}`);
@@ -73,7 +133,6 @@ exports.getTutorCourses = async (req, res) => {
   }
 };
 
-// Enroll a student in a course
 exports.enrollStudent = async (req, res) => {
   try {
     const { courseId } = req.params;
@@ -81,29 +140,25 @@ exports.enrollStudent = async (req, res) => {
 
     const course = await Course.findById(courseId);
     if (!course) {
-      console.error(`Course not found with ID: ${courseId}`);
       return res.status(404).json({ error: 'Course not found' });
     }
 
-    // const student = await User.findById(studentId);
-    // if (!student || student.role !== 'student') {
-    //   console.error(`Invalid student ID or not a student: ${studentId}`);
-    //   return res.status(400).json({ error: 'Invalid student ID or user is not a student' });
-    // }
-
     if (course.studentsEnrolled.includes(studentId)) {
-      console.warn(`Student ${studentId} is already enrolled in course ${courseId}`);
-      return res.status(400).json({ error: 'Student already enrolled in this course' });
+      return res.status(400).json({ error: 'Student already enrolled' });
     }
 
     course.studentsEnrolled.push(studentId);
     await course.save();
 
-    console.log(`Student ${studentId} successfully enrolled in course ${courseId}`);
-    res.status(200).json({ message: 'Student enrolled successfully', course });
+    await updateChatRoom(courseId, course.instructorId, course.studentsEnrolled);
+
+    return res.status(200).json({ 
+      message: 'Student enrolled and added to chatroom successfully', 
+      course 
+    });
+
   } catch (err) {
-    console.error('Error enrolling student in course:', err);
-    res.status(500).json({ error: 'Failed to enroll student', details: err.message });
+    return res.status(500).json({ error: 'Failed to enroll student', details: err.message });
   }
 };
 
@@ -112,33 +167,29 @@ exports.removeStudent = async (req, res) => {
     const { courseId } = req.params;
     const { studentId } = req.body;
 
-    console.log("🧾 Remove request received:");
-    console.log("➡️  Course ID:", courseId);
-    console.log("➡️  Student ID:", studentId);
-
     const course = await Course.findById(courseId);
     if (!course) {
-      console.log("❌ Course not found");
       return res.status(404).json({ error: 'Course not found' });
     }
 
-    console.log("📚 Course found:", course.title);
-    console.log("👥 Enrolled students:", course.studentsEnrolled);
-
     const index = course.studentsEnrolled.indexOf(studentId);
     if (index === -1) {
-      console.log("❗ Student not found in enrolled list");
-      return res.status(400).json({ error: 'Student not enrolled in this course' });
+      return res.status(400).json({ error: 'Student not enrolled' });
     }
 
-    console.log("✅ Student found at index", index, "- removing...");
-    course.studentsEnrolled.splice(index, 1); // remove student
+    course.studentsEnrolled.splice(index, 1);
     await course.save();
 
-    console.log("💾 Course updated successfully");
-    res.status(200).json({ message: 'Student removed from course', course });
+    const chatRoom = await ChatRoom.findOne({ courseId });
+    if (chatRoom) {
+      chatRoom.participants = chatRoom.participants.filter(
+        p => p.userId.toString() !== studentId
+      );
+      await chatRoom.save();
+    }
+
+    res.status(200).json({ message: 'Student removed successfully', course });
   } catch (err) {
-    console.error("🚨 Error removing student:", err);
     res.status(500).json({ error: 'Failed to remove student', details: err.message });
   }
 };
@@ -156,12 +207,11 @@ exports.uploadAssignment = async (req, res) => {
       description,
       dueDate,
       maxScore,
-      files: [], // you can handle file uploads later
+      files: [],
     });
 
     const savedAssignment = await newAssignment.save();
 
-    // (Optional) Add assignment to course's assignment list
     await Course.findByIdAndUpdate(courseId, {
       $push: { assignments: savedAssignment._id },
     });

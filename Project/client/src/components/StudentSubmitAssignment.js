@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { getCourses } from '../api/courseApi';
 import { getAssignmentsByCourse } from '../api/assignmentApi';
 import axios from 'axios';
+import { toast } from 'react-toastify';
 
 const StudentSubmitAssignment = () => {
   const [courses, setCourses] = useState([]);
@@ -28,9 +29,9 @@ const StudentSubmitAssignment = () => {
         assignmentId: selectedAssignment,
         fileUrl, // For now this is just a URL; file upload can come later
       });
-      alert('Assignment submitted!');
+      toast.success('Assignment submitted!');
     } catch (err) {
-      alert('Submission failed: ' + err.message);
+      toast.error('Submission failed: ' + err.message);
     }
   };
 

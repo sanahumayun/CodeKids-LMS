@@ -1,40 +1,31 @@
 const mongoose = require('mongoose');
-const { Schema } = mongoose;
 
-const assignmentSchema = new Schema({
-  course: { 
-    type: Schema.Types.ObjectId, 
-    ref: 'Course', 
-    required: true 
+const assignmentSchema = new mongoose.Schema({
+  course: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Course',
+    required: true,  
   },
-  tutor: { 
-    type: Schema.Types.ObjectId, 
-    ref: 'User', 
-    required: true 
+  title: {
+    type: String,
+    required: true, 
   },
-  title: { 
-    type: String, 
-    required: true 
+  description: {
+    type: String,
+    required: true, 
   },
-  description: { 
-    type: String, 
-    required: true 
+  dueDate: {
+    type: Date,
+    required: true, 
   },
-  dueDate: { 
-    type: Date, 
-    required: true 
+  createdAt: {
+    type: Date,
+    default: Date.now,
   },
-  maxScore: { 
-    type: Number, 
-    required: true 
-  },
-  files: [{
-    name: String,
-    path: String
-  }],
-  createdAt: { 
-    type: Date, 
-    default: Date.now 
+  maxScore: {
+    type: Number,
+    required: true,
+    default: 100
   }
 });
 

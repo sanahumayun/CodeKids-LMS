@@ -1,6 +1,5 @@
 const User = require('../models/User');
 
-// GET /api/users?role=tutor
 const getUsers = async (req, res) => {
     try {
       const { role } = req.query;

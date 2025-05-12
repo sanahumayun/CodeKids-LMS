@@ -4,13 +4,14 @@ import { useState } from "react"
 import axios from "axios"
 import { useNavigate } from "react-router-dom"
 import "./CreateStudent.css"
+import { toast } from 'react-toastify';
 
 const CreateStudent = () => {
   const [form, setForm] = useState({
-    username: "",
+    name: "",
     email: "",
     password: "",
-    role: "student", // fixed role
+    role: "student", 
   })
 
   const navigate = useNavigate()
@@ -20,10 +21,10 @@ const CreateStudent = () => {
   const handleSubmit = async (e) => {
     e.preventDefault()
     try {
-      const res = await axios.post("http://localhost:5000/api/auth/signup", form)
-      alert(res.data.message || "Student created successfully!")
+      const res = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/auth/signup`, form)
+      toast.success(res.data.message || "Student created successfully!")
     } catch (err) {
-      alert(err.response?.data?.error || "Error creating student")
+      toast.error(err.response?.data?.error || "Error creating student")
     }
   }
 
@@ -36,7 +37,7 @@ const CreateStudent = () => {
         <h2 className="form-title">Create Student Profile</h2>
         <div className="form-group">
           <input
-            name="username"
+            name="name"
             placeholder="Name"
             value={form.username}
             onChange={handleChange}

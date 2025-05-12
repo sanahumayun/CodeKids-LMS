@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { createCourse } from '../api/courseApi';
+import { toast } from 'react-toastify';
 
 const AdminCreateCourse = () => {
   const [name, setName] = useState('');
@@ -10,9 +11,9 @@ const AdminCreateCourse = () => {
     e.preventDefault();
     try {
       const res = await createCourse({ name, description, tutorId });
-      alert('Course created!');
+      toast.success('Course created!');
     } catch (err) {
-      alert('Error creating course: ' + err.message);
+      toast.error('Error creating course: ' + err.message);
     }
   };
 

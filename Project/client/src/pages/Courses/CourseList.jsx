@@ -1,114 +1,110 @@
-"use client"
-
-import { useEffect, useState } from "react"
-import axios from "axios"
-import "./CourseList.css"
+import { useEffect, useState } from "react";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import "./CourseList.css";
+import { toast } from 'react-toastify';
 
 const CourseList = () => {
-  const [courses, setCourses] = useState([])
-  const [students, setStudents] = useState([]) // all students
-  const [loading, setLoading] = useState(true)
-  const [enrollSelection, setEnrollSelection] = useState({})
-  const [removeSelection, setRemoveSelection] = useState({})
+  const [courses, setCourses] = useState([]);
+  const [students, setStudents] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [enrollSelection, setEnrollSelection] = useState({});
+  const [removeSelection, setRemoveSelection] = useState({});
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const courseRes = await axios.get("/api/courses/course-list")
-        const studentRes = await axios.get("/api/users?role=student")
-        setCourses(courseRes.data)
-        setStudents(studentRes.data)
+        const courseRes = await axios.get( `${process.env.REACT_APP_API_BASE_URL}/courses/course-list`);
+        const studentRes = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/users?role=student`);
+        setCourses(courseRes.data);
+        setStudents(studentRes.data);
       } catch (err) {
-        console.error("Failed to fetch data", err)
+        console.error("Failed to fetch data", err);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    fetchData()
-  }, [])
+    fetchData();
+  }, []);
 
   const handleEnroll = async (courseId, studentId) => {
-    const confirm = window.confirm("Are you sure you want to enroll this student in the course?")
-    if (!confirm) return
-
-    console.log("📩 Enrolling student...")
-    console.log("🧾 Course ID:", courseId)
-    console.log("🎓 Student ID:", studentId)
-
+    if (!window.confirm("Enroll this student?")) return;
     try {
-      const response = await axios.post(`/api/courses/${courseId}/enroll`, { studentId })
-      console.log("✅ Enrollment successful! Server response:", response.data)
-
-      alert("✅ Student successfully enrolled!")
-      // fetchData(); // Refresh the course list
+      await axios.post(`${process.env.REACT_APP_API_BASE_URL}/courses/${courseId}/enroll`, { studentId });
+      toast.success("✅ Student enrolled and added to chatroom!");
     } catch (err) {
-      console.error("❌ Enrollment failed:", err.response?.data || err.message)
-      alert("❌ Failed to enroll student. Please try again.")
+      console.error(err);
+      toast.error("❌ Enrollment failed.");
     }
-  }
+  };
 
   const handleRemove = async (courseId) => {
-    const studentId = removeSelection[courseId]
-    if (!studentId) {
-      alert("❗ Please select a student to remove.")
-      return
-    }
-
-    const confirm = window.confirm("Are you sure you want to remove this student from the course?")
-    if (!confirm) return
-
-    console.log("📩 Removing student...")
-    console.log("🧾 Course ID:", courseId)
-    console.log("🎓 Student ID:", studentId)
+    const studentId = removeSelection[courseId];
+    if (!studentId) return toast("❗ Select a student to remove.");
+    if (!window.confirm("Remove this student?")) return;
 
     try {
-      console.log("📤 Sending removal request:", { courseId, studentId })
-      await axios.post(
-        `/api/courses/${courseId}/remove-student`, // fixed endpoint to match enroll style
-        { studentId },
-      )
-
-      alert("✅ Student successfully removed!")
-      // fetchData(); // reload data like you did in enroll
+      await axios.post(`${process.env.REACT_APP_API_BASE_URL}/courses/${courseId}/remove-student`, { studentId });
+      toast.success("✅ Student removed from course and chatroom.");
     } catch (err) {
-      console.error("❌ Failed to remove student", err)
-      alert("❌ Failed to remove student. Please try again.")
+      console.error(err);
+      toast.error("❌ Failed to remove student.");
     }
-  }
+  };
 
-  if (loading) return <p className="loading-message">Loading courses...</p>
+  if (loading) return <p className="loading-message">Loading courses...</p>;
 
   return (
     <div className="course-list-container">
+      <button className="back-button" onClick={() => navigate(-1)}>
+        ← Back
+      </button>
+
       <h2 className="page-title">Available Courses</h2>
       {courses.length === 0 ? (
         <p className="empty-message">No courses found.</p>
       ) : (
-        <ul className="course-list">
+        <div className="course-grid">
           {courses.map((course) => (
-            <li key={course._id} className="course-item">
-              <h3 className="course-title">{course.title}</h3>
-              <p className="course-description">{course.description}</p>
-              <p className="instructor-info">
-                Instructor: {course.instructorId?.name} ({course.instructorId?.email})
-              </p>
+            <div key={course._id} className="course-card">
+                <h3 className="course-title">{course.title}</h3>
+                <p className="course-description">{course.description}</p>
+                <p className="instructor-info">
+                  Instructor: {course.instructorId?.name} ({course.instructorId?.email})
+                </p>
 
               <div className="student-enrollment">
                 <h4>Enrolled Students</h4>
                 <ul>
-                  {course.studentsEnrolled && course.studentsEnrolled.length > 0 ? (
+                  {course.studentsEnrolled?.length ? (
                     course.studentsEnrolled.map((s) => (
-                      <li key={s._id}>
-                        {s.name} ({s.email})
-                      </li>
+                      <li key={s._id}>{s.name} ({s.email})</li>
                     ))
                   ) : (
                     <li>No students enrolled yet.</li>
                   )}
                 </ul>
 
-                {/* Enroll Dropdown */}
+                <div className="assignments-section">
+                <h4>Assignments</h4>
+                {course.assignments.length === 0 ? (
+                  <p>No assignments uploaded yet.</p>
+                ) : (
+                  <ul>
+                    {course.assignments.map((assignment) => (
+                      <li key={assignment._id} className="assignment-item">
+                        <h5>{assignment.title}</h5>
+                        <p>{assignment.description}</p>
+                        <p><strong>Due Date:</strong> {new Date(assignment.dueDate).toLocaleDateString()}</p>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+
                 <div className="enroll-form">
                   <select
                     value={enrollSelection[course._id] || ""}
@@ -124,31 +120,27 @@ const CourseList = () => {
                   <button onClick={() => handleEnroll(course._id, enrollSelection[course._id])}>Enroll</button>
                 </div>
 
-                {/* Remove Dropdown */}
                 <div className="enroll-form">
                   <select
                     value={removeSelection[course._id] || ""}
                     onChange={(e) => setRemoveSelection({ ...removeSelection, [course._id]: e.target.value })}
                   >
                     <option value="">Select student to remove</option>
-                    {course.studentsEnrolled &&
-                      course.studentsEnrolled.map((s) => (
-                        <option key={s._id} value={s._id}>
-                          {s.name} ({s.email})
-                        </option>
-                      ))}
+                    {course.studentsEnrolled?.map((s) => (
+                      <option key={s._id} value={s._id}>
+                        {s.name} ({s.email})
+                      </option>
+                    ))}
                   </select>
-                  <button className="remove-btn" onClick={() => handleRemove(course._id)}>
-                    Remove
-                  </button>
+                  <button className="remove-btn" onClick={() => handleRemove(course._id)}>Remove</button>
                 </div>
               </div>
-            </li>
+            </div>
           ))}
-        </ul>
+        </div>
       )}
     </div>
-  )
-}
+  );
+};
 
-export default CourseList
+export default CourseList;

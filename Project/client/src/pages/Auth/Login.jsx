@@ -12,18 +12,15 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault()
     try {
-      const res = await axios.post("http://localhost:5000/api/auth/login", form)
-      const token = res.data.token // The JWT token from the backend
-      const user = res.data.user // User data from the backend
+      const res = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/auth/login`, form)
+      const token = res.data.token 
+      const user = res.data.user 
 
-      // Store the token and user information in localStorage
+      
       localStorage.setItem("authToken", token)
       localStorage.setItem("user", JSON.stringify(user))
 
-      // Alert for debugging
-      // alert(`Token: ${token}\nUser Info: ${JSON.stringify(user, null, 2)}`)
-
-      // Redirect based on user role
+      
       if (user.role === "admin") {
         window.location.href = "/admin-dashboard"
       } else if (user.role === "tutor") {
@@ -32,7 +29,7 @@ const Login = () => {
         window.location.href = "/student-dashboard"
       }
     } catch (err) {
-      alert(err.response.data.error || "Error")
+      toast.error(err.response.data.error || "Error")
     }
   }
 

@@ -3,7 +3,6 @@ const roleMiddleware = require('../middleware/roleMiddleware');
 const authMiddleware = require('../middleware/auth');
 const router = express.Router();
 
-// Admin dashboard route
 router.get(
   '/admin',
   authMiddleware,
@@ -13,7 +12,6 @@ router.get(
   }
 );
 
-// Tutor dashboard route
 router.get(
   '/tutor',
   authMiddleware,
@@ -23,7 +21,6 @@ router.get(
   }
 );
 
-// Student dashboard route
 router.get(
   '/student',
   authMiddleware,

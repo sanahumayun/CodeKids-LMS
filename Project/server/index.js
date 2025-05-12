@@ -10,76 +10,63 @@ const socketIo = require('socket.io');
 dotenv.config();
 
 const app = express();
+const PORT = process.env.PORT || 5000;
 
-// Middleware to parse incoming requests as JSON
 app.use(express.json());
-app.use(cors());
+app.use(cors({
+  origin: 'http://localhost:3000', 
+  credentials: true               
+}));
 
-// MongoDB connection
 mongoose.connect(process.env.MONGO_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 })
-  .then(() => console.log('MongoDB connected'))
-  .catch(err => console.log(err));
+.then(() => console.log('MongoDB connected'))
+.catch(err => console.log(err));
 
-
-// Auth Routes
-app.use('/api/auth', authRoutes);
-
-// Routes
-const courseRoutes = require("./routes/courseRoutes.js");
-const assignmentRoutes = require("./routes/assignmentRoutes.js");
-const submissionRoutes = require("./routes/submissionRoutes.js");
-const progressRoutes = require("./routes/progressRoutes.js");
-const reviewRoutes = require("./routes/reviewRoutes.js");
-const chatRoutes = require("./routes/chatRoutes.js");
-const userRoutes = require('./routes/userRoutes');
-
-// app.use("/api/users", authRoutes);
-app.use('/api/users', userRoutes);
-// ⚠️ This opens the route to everyone (no auth check)
-app.use("/api/courses", courseRoutes);
-app.use("/api/assignments", authenticate, checkRole('admin', 'tutor'), assignmentRoutes); // Same here
-app.use("/api/submissions", authenticate, checkRole('admin', 'tutor', 'student'), submissionRoutes); // Allow students to submit as well
-app.use("/api/progress", authenticate, checkRole('admin', 'tutor', 'student'), progressRoutes);
-app.use("/api/reviews", reviewRoutes);
-app.use("/api/chat", chatRoutes); 
-
-app.get("/", (req, res) => {
-  res.send("Chat Server is running");
+mongoose.connection.once('open', async () => {
+  try {
+    console.log('Attempting to fix ChatRoom indexes...');
+    const chatRoomCollection = mongoose.connection.db.collection('chatrooms');
+    
+    const indexes = await chatRoomCollection.indexes();
+    console.log('Current indexes:', indexes);
+    
+    if (indexes.some(index => index.name === 'course_1')) {
+      console.log('Dropping problematic index: course_1');
+      await chatRoomCollection.dropIndex('course_1');
+      console.log('Successfully dropped problematic index');
+    } else {
+      console.log('Problematic index not found, no need to drop');
+    }
+    
+    console.log('ChatRoom indexes fixed successfully');
+  } catch (error) {
+    console.error('Error fixing ChatRoom indexes:', error);
+  }
 });
 
-// Define the port; default to 8000 if PORT isn't set in the environment
-const PORT = process.env.PORT || 5000;
 
-// Connect to MongoDB and then start the server
-mongoose
-  .connect(process.env.MONGO_URI)
-  .then(() => {
-    console.log("MongoDB connected");
+app.use('/api/auth', authRoutes);
+app.use('/api/users', require('./routes/userRoutes'));
+app.use("/api/courses", require("./routes/courseRoutes"));
+app.use('/api/assignments', require("./routes/assignmentRoutes"));
+app.use("/api/submission", require("./routes/submissionRoutes"));
+app.use("/api/reviews", require("./routes/reviewRoutes"));
 
-    // Create HTTP server and attach socket.io
-    const server = http.createServer(app);
+const server = http.createServer(app);
 
-    const io = socketIo(server, {
-      cors: {
-        origin: process.env.CLIENT_URL || "http://localhost:3000",
-        methods: ["GET", "POST"],
-        credentials: true,
-      },
-    });
+const io = socketIo(server, {
+  cors: {
+    origin: process.env.CLIENT_URL || "http://localhost:3000",
+    methods: ["GET", "POST"],
+  },
+});
+require("./socket/socket")(io);
 
-    // Setup socket events (adjust accordingly in your socket file)
-    require("./socket/socket.js")(io);
+server.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+});
 
-    server.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
-    });
-  })
-  .catch((err) => console.error("MongoDB connection error:", err));
-
-
-    
-   
-
+module.exports = app;

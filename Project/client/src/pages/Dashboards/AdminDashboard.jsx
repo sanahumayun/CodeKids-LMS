@@ -1,49 +1,39 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import './AdminDashboard.css';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
+  const [courses, setCourses] = useState([]);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
     navigate("/");
   };
 
+
   return (
-    <div className="admin-dashboard">
-      <div className="dashboard-container">
-        <h2 className="dashboard-title">Admin Dashboard</h2>
+    <div className="dashboard-layout">
+      <aside className="sidebar">
+        <h2 className="sidebar-title">Admin</h2>
+        <nav className="sidebar-nav">
+          <Link to="/create-course" className="nav-link">Create Course</Link>
+          <Link to="/course-list" className="nav-link">View Courses</Link>
+          <Link to="/create-tutor" className="nav-link">Create Tutor</Link>
+          <Link to="/create-student" className="nav-link">Create Student</Link>
+          <button className="logout-button" onClick={handleLogout}>Logout</button>
+        </nav>
+      </aside>
 
-        <div className="dashboard-menu">
-          <Link to="/create-course" className="menu-item create-course">
-            <span className="menu-icon">➕</span>
-            <span className="menu-text">Create Course</span>
-          </Link>
+      <main className="dashboard-main">
+        <h1 className="dashboard-heading">Admin Dashboard</h1>
 
-          <Link to="/course-list" className="menu-link course-list">
-              <span className="menu-icon">🧾</span>
-              <span className="menu-text">View All Courses</span>
-          </Link>
-
-          <Link to="/create-tutor" className="menu-item create-tutor">
-            <span className="menu-icon">👨‍🏫</span>
-            <span className="menu-text">Create Tutor Profile</span>
-          </Link>
-
-          <Link to="/create-student" className="menu-item create-student">
-            <span className="menu-icon">👩‍🎓</span>
-            <span className="menu-text">Create Student Profile</span>
-          </Link>
+        <div className="analytics-cards">
+          <div className="analytics-card">Total Courses: {courses.length}</div>
+          <div className="analytics-card">Total Tutors: --</div>
+          <div className="analytics-card">Total Students: --</div>
         </div>
-
-        <div className="logout-container">
-          <button className="logout-button" onClick={handleLogout}>
-            <span className="logout-icon">🚪</span>
-            Logout
-          </button>
-        </div>
-      </div>
+      </main>
     </div>
   );
 };
