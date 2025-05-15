@@ -230,7 +230,7 @@ const handleMaterialUpload = async () => {
 
   return (
     <div className="container">
-  <button className="button button-secondary" onClick={() => navigate('/tutor/dashboard')}>← Back</button>
+  <button className="button button-secondary" onClick={() => navigate('/tutor-dashboard')}>← Back</button>
 
   <h2 className="page-title">{course.title}</h2>
   <p className="card-body">{course.description}</p>

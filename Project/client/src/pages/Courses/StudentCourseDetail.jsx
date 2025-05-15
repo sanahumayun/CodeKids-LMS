@@ -96,7 +96,7 @@ const StudentCourseDetail = () => {
 
   return (
     <div className="page-wrapper container">
-  <button className="button button-primary" onClick={() => navigate('/student/dashboard')}>
+  <button className="button button-primary" onClick={() => navigate('/student-dashboard')}>
     ← Back
   </button>
 
