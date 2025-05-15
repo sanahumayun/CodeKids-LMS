@@ -4,13 +4,16 @@ const Course = require('../models/Course');
 exports.uploadAssignment = async (req, res) => {
   const { courseId } = req.params;  
   const { title, description, dueDate } = req.body;  
+  const file = req.file;
 
   try {
+
     const newAssignment = new Assignment({
       course: courseId,
       title,
       description,
       dueDate,
+      fileUrl: file ? file.location : null,
     });
 
     await newAssignment.save();

@@ -2,6 +2,8 @@
 const Assignment = require('../models/Assignment');
 const Course = require('../models/Course');
 const ChatRoom = require('../models/ChatRoom');
+const Submission = require('../models/Submission');
+const Review = require('../models/Review');
 
 const updateChatRoom = async (courseId, instructorId, students = []) => {
   try {
@@ -199,6 +201,7 @@ exports.uploadAssignment = async (req, res) => {
     const { courseId } = req.params;
     const { title, description, dueDate, maxScore } = req.body;
     const tutorId = req.user.id;
+    const file = req.file;
 
     const newAssignment = new Assignment({
       course: courseId,
@@ -207,7 +210,7 @@ exports.uploadAssignment = async (req, res) => {
       description,
       dueDate,
       maxScore,
-      files: [],
+      fileUrl: file ? file.location : null,
     });
 
     const savedAssignment = await newAssignment.save();
@@ -240,7 +243,14 @@ exports.getTutorCourseDetail = async (req, res) => {
       return res.status(403).json({ error: 'You are not authorized to view this course' });
     }
 
-    res.status(200).json(course);
+    const reviews = await Review.find({ courseId }).select('responses comment createdAt');
+
+    const courseWithReviews = {
+      ...course.toObject(),
+      reviews, 
+    };
+
+    res.status(200).json(courseWithReviews);
   } catch (err) {
     console.error('Error fetching tutor course detail:', err);
     res.status(500).json({ error: 'Failed to fetch course details', details: err.message });
@@ -274,12 +284,18 @@ exports.updateCourseStatus = async (req, res) => {
 exports.getStudentCourseDetail = async (req, res) => {
   try {
     const { courseId } = req.params;
+    const studentId = req.user.id;
 
     // Fetch course details for the student
     const course = await Course.findById(courseId)
       .populate('instructorId', 'name email')
-      .populate('assignments')
-      .populate('studentsEnrolled', 'name email');
+      .populate({
+        path: 'assignments',
+        model: 'Assignment',
+      })
+      .populate('studentsEnrolled', 'name email')
+      .populate('materials')
+      .lean();
 
     if (!course) {
       return res.status(404).json({ error: 'Course not found' });
@@ -290,10 +306,66 @@ exports.getStudentCourseDetail = async (req, res) => {
       return res.status(403).json({ error: 'You are not enrolled in this course' });
     }
 
+    const assignmentsWithSubmissions = await Promise.all(
+      course.assignments.map(async (assignment) => {
+        const submissions = await Submission.find({
+          assignmentId: assignment._id,
+          studentId: studentId
+        }).lean();
+
+        return {
+          ...assignment,
+          submissions
+        };
+      })
+    );
+
+    course.assignments = assignmentsWithSubmissions;
+
     res.status(200).json(course);
   } catch (err) {
     console.error('Error fetching student course detail:', err);
     res.status(500).json({ error: 'Failed to fetch course details', details: err.message });
+  }
+};
+
+exports.uploadCourseMaterial = async (req, res) => {
+  try {
+    const { courseId } = req.params;
+    const tutorId = req.user.id;
+    const { title, description } = req.body;
+    const file = req.file;
+
+    if (!title) {
+      return res.status(400).json({ error: 'Material title is required' });
+    }
+    if (!file) {
+      return res.status(400).json({ error: 'Material file is required' });
+    }
+
+    const course = await Course.findById(courseId);
+    if (!course) {
+      return res.status(404).json({ error: 'Course not found' });
+    }
+    if (course.instructorId.toString() !== tutorId) {
+      return res.status(403).json({ error: 'You are not the instructor of this course' });
+    }
+
+    const newMaterial = {
+      title,
+      description: description || '',
+      fileUrl: file.location, // <-- ✅ use file.location like in assignment upload
+      uploadedBy: tutorId,
+      createdAt: new Date(),
+    };
+
+    course.materials.push(newMaterial);
+    await course.save();
+
+    res.status(201).json({ message: 'Material saved successfully', material: newMaterial });
+  } catch (err) {
+    console.error('Error saving course material:', err);
+    res.status(500).json({ error: 'Failed to save material' });
   }
 };
 

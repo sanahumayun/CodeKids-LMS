@@ -324,3 +324,36 @@ li {
   border-color: var(--navy-blue);
   outline: none;
 }
+
+.course-layout-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+.course-main-content {
+  padding: 1rem;
+  background: #fff;
+  border-radius: 12px;
+}
+
+.course-sidebar {
+  padding: 1rem;
+  background: #f9f9f9;
+  border-left: 2px solid #eee;
+  border-radius: 12px;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.assignment-item, .material-item {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+}
+
+.submission-textarea {
+  width: 100%;
+  margin: 0.5rem 0;
+  resize: vertical;
+}

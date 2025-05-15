@@ -1,7 +1,8 @@
 const express = require("express");
 const router = express.Router();
-const {submitAssignment, getSubmissionsForAssignment} = require("../controllers/submissionController");
+const {submitAssignment, getSubmissionsForAssignment, updateSubmissionGrade} = require("../controllers/submissionController");
 const { authenticate, checkRole } = require("../middleware/authMiddleware");
+const upload = require("../utils/upload");
 
 router.post(
   '/assignments/:assignmentId/submissions',
@@ -11,7 +12,7 @@ router.post(
     console.log("📡 submission route matched!");
     next();
   },
-submitAssignment);
+upload.single('submissionFile'), submitAssignment);
 
 router.get(
   '/assignments/:assignmentId/submissions',
@@ -23,5 +24,12 @@ router.get(
   },
   getSubmissionsForAssignment
 );
+
+router.patch(
+  '/tutor/courses/assignments/:assignmentId/submissions/:submissionId/grade',
+  authenticate, checkRole(['tutor']),   // Optional: protect route so only tutors can grade
+  updateSubmissionGrade
+);
+
 
 module.exports = router;

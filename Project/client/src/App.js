@@ -10,17 +10,14 @@ import Signup from './pages/Auth/Signup';
 import Login from './pages/Auth/Login';
 
 import TutorUploadAssignment from "./pages/Courses/TutorUploadAssignment";
-import StudentCourseView from "./pages/Courses/StudentCourseView";
 import StudentCourseDetail from "./pages/Courses/StudentCourseDetail";
-import StudentProgress from "./components/StudentProgress";
-import TutorViewProgress from "./components/TutorViewProgress";
+
 import CourseList from "./pages/Courses/CourseList";
 import CreateCourse from "./pages/Courses/CreateCourse";
 import TutorCourseDetails from "./pages/Courses/TutorCourseDetails";
-import TutorCourseList from "./pages/Courses/TutorCourseList";
+import StudentReviewForm from "./pages/Courses/StudentReview";
+import AdminReviewsPage from "./pages/Courses/AdminReviews";
 
-import InstructorReviews from "./components/InstructorReviews";
-import SubmitReviewForm from "./components/SubmitReviewForm";
 import CreateTutor from "./pages/Create_Accounts/CreateTutor";
 import CreateStudent from "./pages/Create_Accounts/CreateStudent";
 
@@ -52,16 +49,15 @@ function App() {
         <Route path="/admin/courses/create" element={<CreateCourse />} />
         <Route path="/admin/create-tutor" element={<CreateTutor />} />
         <Route path="/admin/create-student" element={<CreateStudent />} />
-        
+        <Route path="/admin/reviews" element={<AdminReviewsPage />} />
 
         <Route path="/tutor-dashboard" element={<TutorDashboard />} />
-        <Route path="/tutor/courses" element={<TutorCourseList />} />
         <Route path="/tutor/courses/:courseId" element={<TutorCourseDetails />} />
         <Route path="/tutor/courses/upload-assignment" element={<TutorUploadAssignment />} />
 
         <Route path="/student-dashboard" element={<StudentDashboard />} />
-        <Route path="/student/courses" element={<StudentCourseView />} />
         <Route path="/student/courses/:courseId" element={<StudentCourseDetail />} />
+        <Route path="/student/courses/:courseId/reviews" element={<StudentReviewForm />} />
 
         {/* Chat Routes */}
         <Route path="/chat" element={<ChatProvider><ChatLayout /></ChatProvider>} />

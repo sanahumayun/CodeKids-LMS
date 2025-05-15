@@ -1,5 +1,13 @@
 const mongoose = require('mongoose');
 
+const materialSchema = new mongoose.Schema({
+  title: { type: String, required: true },
+  description: { type: String },
+  fileUrl: { type: String, required: true },
+  uploadedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  createdAt: { type: Date, default: Date.now }
+});
+
 const courseSchema = new mongoose.Schema({
   title: {
     type: String,
@@ -11,14 +19,15 @@ const courseSchema = new mongoose.Schema({
   },
   instructorId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User', 
+    ref: 'User',
     required: true
   },
   studentsEnrolled: [{
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User' 
+    ref: 'User'
   }],
   assignments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Assignment' }],
+  materials: [materialSchema],  // << Add this line for embedded materials
   status: {
     type: String,
     enum: ['in progress', 'complete'],
@@ -26,9 +35,10 @@ const courseSchema = new mongoose.Schema({
   }
 });
 
-courseSchema.virtual('studentCount').get(function () {
-  return this.studentsEnrolled.length;
+courseSchema.virtual('numEnrolled').get(function () {
+  return this.studentsEnrolled ? this.studentsEnrolled.length : 0;
 });
+
 
 courseSchema.set('toJSON', { virtuals: true });
 courseSchema.set('toObject', { virtuals: true });

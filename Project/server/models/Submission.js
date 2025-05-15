@@ -14,7 +14,15 @@ const submissionSchema = new mongoose.Schema(
     },
     content: {
       type: String,
-      required: true,
+      required: false,  // make it optional if file upload might be the only content
+    },
+    fileUrl: {
+      type: String,
+      required: false,
+    },
+    fileKey: {
+      type: String,
+      required: false,
     },
     submittedAt: {
       type: Date,
@@ -22,11 +30,10 @@ const submissionSchema = new mongoose.Schema(
     },
     grade: {
       type: Number,
-      default: 0
+      default: 0,
     },
   },
   { timestamps: true }
 );
-
 
 module.exports = mongoose.model("Submission", submissionSchema);
