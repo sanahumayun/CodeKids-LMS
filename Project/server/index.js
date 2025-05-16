@@ -54,6 +54,7 @@ app.use("/api/courses", require("./routes/courseRoutes"));
 app.use('/api/courses', require("./routes/assignmentRoutes"));
 app.use("/api/courses", require("./routes/submissionRoutes"));
 app.use("/api/courses", require("./routes/reviewRoutes"));
+app.use("/api/courses", require("./routes/feedbackRoutes"));
 
 const server = http.createServer(app);
 

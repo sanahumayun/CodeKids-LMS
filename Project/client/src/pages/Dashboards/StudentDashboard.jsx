@@ -28,7 +28,7 @@ const StudentDashboard = () => {
           res.data.map(async (course) => {
             // fetch reviews for each course to calculate avg rating
             const reviewsRes = await axios.get(
-              `${process.env.REACT_APP_API_BASE_URL}/courses/student/${course._id}/reviews`,
+              `${process.env.REACT_APP_API_BASE_URL}/courses/student/courses/${course._id}/reviews`,
               { headers: { Authorization: `Bearer ${authToken}` } }
             );
 
@@ -113,6 +113,7 @@ const StudentDashboard = () => {
             </ul>
           )}
 
+          <Link to="/student/feedback" className="nav-link">See Feedback</Link>
           <Link to="/chat" className="nav-link">Chat with Tutor</Link>
           <button 
             className="button button-secondary logout-button" 

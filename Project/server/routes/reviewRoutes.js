@@ -16,7 +16,7 @@ router.get(
   reviewController.getAllReviews
 );
 
-router.get('student/courses/:courseId/reviews', authenticate, checkRole(['student', 'tutor']), reviewController.getReviewsForCourse);
+router.get('/student/courses/:courseId/reviews', authenticate, checkRole(['student', 'tutor']), reviewController.getReviewsForCourse);
 
 
 module.exports = router;

@@ -80,6 +80,7 @@ const AdminDashboard = () => {
           <Link to="/admin/create-tutor" className="nav-link">Create Tutor</Link>
           <Link to="/admin/create-student" className="nav-link">Create Student</Link>
           <Link to="/admin/reviews" className="nav-link">View Reviews</Link>
+          <Link to="/admin/delete" className="nav-link">Delete Profiles</Link>
           <button 
             className="button button-secondary logout-button" 
             onClick={handleLogout}

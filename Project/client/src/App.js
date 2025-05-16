@@ -17,9 +17,12 @@ import CreateCourse from "./pages/Courses/CreateCourse";
 import TutorCourseDetails from "./pages/Courses/TutorCourseDetails";
 import StudentReviewForm from "./pages/Courses/StudentReview";
 import AdminReviewsPage from "./pages/Courses/AdminReviews";
+import TutorFeedbackPage from "./pages/Courses/TutorFeedback";
+import StudentFeedbackPage from "./pages/Courses/StudentFeedback";
 
 import CreateTutor from "./pages/Create_Accounts/CreateTutor";
 import CreateStudent from "./pages/Create_Accounts/CreateStudent";
+import DeleteAccount from "./pages/Create_Accounts/DeleteAccount";
 
 import AdminDashboard from "./pages/Dashboards/AdminDashboard";
 import TutorDashboard from "./pages/Dashboards/TutorDashboard";
@@ -50,14 +53,17 @@ function App() {
         <Route path="/admin/create-tutor" element={<CreateTutor />} />
         <Route path="/admin/create-student" element={<CreateStudent />} />
         <Route path="/admin/reviews" element={<AdminReviewsPage />} />
+        <Route path="/admin/delete" element={<DeleteAccount />} />
 
         <Route path="/tutor-dashboard" element={<TutorDashboard />} />
         <Route path="/tutor/courses/:courseId" element={<TutorCourseDetails />} />
         <Route path="/tutor/courses/upload-assignment" element={<TutorUploadAssignment />} />
+        <Route path="/tutor/feedback" element={<TutorFeedbackPage />} />
 
         <Route path="/student-dashboard" element={<StudentDashboard />} />
         <Route path="/student/courses/:courseId" element={<StudentCourseDetail />} />
         <Route path="/student/courses/:courseId/reviews" element={<StudentReviewForm />} />
+        <Route path="/student/feedback" element={<StudentFeedbackPage />} />
 
         {/* Chat Routes */}
         <Route path="/chat" element={<ChatProvider><ChatLayout /></ChatProvider>} />
