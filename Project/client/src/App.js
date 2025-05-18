@@ -9,7 +9,6 @@ import './global.css';
 import Signup from './pages/Auth/Signup';
 import Login from './pages/Auth/Login';
 
-import TutorUploadAssignment from "./pages/Courses/TutorUploadAssignment";
 import StudentCourseDetail from "./pages/Courses/StudentCourseDetail";
 
 import CourseList from "./pages/Courses/CourseList";
@@ -19,6 +18,7 @@ import StudentReviewForm from "./pages/Courses/StudentReview";
 import AdminReviewsPage from "./pages/Courses/AdminReviews";
 import TutorFeedbackPage from "./pages/Courses/TutorFeedback";
 import StudentFeedbackPage from "./pages/Courses/StudentFeedback";
+import AdminCourseDetail from "./pages/Courses/AdminCourseDetail";
 
 import CreateTutor from "./pages/Create_Accounts/CreateTutor";
 import CreateStudent from "./pages/Create_Accounts/CreateStudent";
@@ -49,6 +49,7 @@ function App() {
         <Route path="/" element={<Login />} />
         <Route path="/admin-dashboard" element={<AdminDashboard />} />
         <Route path="/admin/courses" element={<CourseList />} />
+        <Route path="/admin/courses/:courseId" element={<AdminCourseDetail/>} />
         <Route path="/admin/courses/create" element={<CreateCourse />} />
         <Route path="/admin/create-tutor" element={<CreateTutor />} />
         <Route path="/admin/create-student" element={<CreateStudent />} />
@@ -57,7 +58,6 @@ function App() {
 
         <Route path="/tutor-dashboard" element={<TutorDashboard />} />
         <Route path="/tutor/courses/:courseId" element={<TutorCourseDetails />} />
-        <Route path="/tutor/courses/upload-assignment" element={<TutorUploadAssignment />} />
         <Route path="/tutor/feedback" element={<TutorFeedbackPage />} />
 
         <Route path="/student-dashboard" element={<StudentDashboard />} />

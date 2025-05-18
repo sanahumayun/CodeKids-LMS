@@ -10,6 +10,8 @@ const StudentCourseDetail = () => {
   const [submission, setSubmission] = useState({});
   const [files, setFiles] = useState({});
   const { courseId } = useParams();
+  const [classwork, setClasswork] = useState({});
+  const [classworkFiles, setClassworkFiles] = useState({});
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -90,116 +92,194 @@ const StudentCourseDetail = () => {
     }));
   };
 
+  const handleClassworkChange = (e, materialId) => {
+    setClasswork((prev) => ({
+      ...prev,
+      [materialId]: e.target.value,
+    }));
+  };
+
+  const handleClassworkFileChange = (e, materialId) => {
+    const file = e.target.files[0];
+    setClassworkFiles((prev) => ({
+      ...prev,
+      [materialId]: file,
+    }));
+  };
+
+  const handleSubmitClasswork = async (materialId) => {
+    const content = classwork[materialId] || "";
+    const file = classworkFiles[materialId];
+
+    if (!content && !file) {
+      toast.error("Please add text or upload a file for classwork.");
+      return;
+    }
+
+    try {
+      const authToken = localStorage.getItem("authToken");
+      const studentId = localStorage.getItem("userId"); // Assumes you store student ID like this
+
+      const formData = new FormData();
+      formData.append("materialId", materialId); // optional, useful if needed on backend
+      formData.append("content", content);
+      if (file) formData.append("file", file);
+
+      const res = await axios.post(
+        `${process.env.REACT_APP_API_BASE_URL}/courses/student/courses/${courseId}/upload-classwork`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      toast.success("Classwork submitted successfully!");
+      setClasswork((prev) => ({ ...prev, [materialId]: "" }));
+      setClassworkFiles((prev) => ({ ...prev, [materialId]: null }));
+    } catch (err) {
+      console.error("Error submitting classwork:", err.response ? err.response.data : err.message);
+      toast.error("Failed to submit classwork.");
+    }
+  };
+
+
 
   if (loading) return <div className="loader">Loading course details...</div>;
   if (error) return <p className="error-message">{error}</p>;
 
   return (
     <div className="page-wrapper container">
-  <button className="button button-primary" onClick={() => navigate('/student-dashboard')}>
-    ← Back
-  </button>
-
-  <h2 className="page-title">{course.title}</h2>
-  <p>{course.description}</p>
-
-  <div className="course-layout-grid">
-    {/* Center Column: Course Materials */}
-    <div className="course-main-content">
-      <h3>Course Materials</h3>
-      {course.materials && course.materials.length > 0 ? (
-        <ul className="materials-list">
-          {course.materials.map((material) => (
-            <li key={material._id} className="card material-item">
-              <strong>{material.title}</strong>{" "}
-              {material.description && `- ${material.description}`} <br />
-              <a
-                href={material.fileUrl || material.url}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                View Material
-              </a>
-              <br />
-              <small>
-                Uploaded on {new Date(material.createdAt || material.uploadedAt).toLocaleDateString()}
-              </small>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p>No materials available.</p>
-      )}
-    </div>
-
-    {/* Right Column: Assignments */}
-    <aside className="course-sidebar">
-      <h3>Assignments</h3>
-      {course.assignments.length === 0 ? (
-        <p className="empty-message">No assignments available.</p>
-      ) : (
-        <ul className="assignment-list">
-          {course.assignments.map((assignment) => (
-            <li key={assignment._id} className="card assignment-item">
-              <h4>{assignment.title}</h4>
-              <p>{assignment.description}</p>
-              <p><strong>Due Date:</strong> {new Date(assignment.dueDate).toLocaleDateString()}</p>
-
-              {assignment.submissions?.length > 0 ? (
-                <div className="submission-preview">
-                  <p><strong>Your previous submissions:</strong></p>
-                  {assignment.submissions.map((sub, idx) => (
-                    <div key={sub._id || idx} className="submission-entry">
-                      {sub.content && <p>{sub.content}</p>}
-                      {sub.fileUrl && (
-                        <p><a href={sub.fileUrl} target="_blank" rel="noopener noreferrer">View submitted file</a></p>
-                      )}
-                      <p className="submission-date">Submitted on: {new Date(sub.createdAt).toLocaleString()}</p>
-                      {sub.grade !== undefined && (
-                        <p className="submission-grade">Grade: {sub.grade}</p>
-                      )}
-                      <hr />
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="empty-message">You haven't submitted this assignment yet.</p>
-              )}
-
-              <textarea
-                placeholder="Enter your submission here"
-                value={submission[assignment._id] || ""}
-                onChange={(e) => handleSubmissionChange(e, assignment._id)}
-                rows="3"
-                className="submission-textarea"
-              />
-
-              <input
-                type="file"
-                accept="*/*"
-                onChange={(e) => handleFileChange(e, assignment._id)}
-                className="file-input"
-              />
-
-              <button
-                onClick={() => handleSubmitAssignment(assignment._id)}
-                className="button button-primary"
-              >
-                Submit
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
-    </aside>
-    <button
-        className="button button-secondary"
-        onClick={() => navigate(`/student/courses/${course._id}/reviews`)}
-      >
-      Review this Course
+      <button className="button button-primary" onClick={() => navigate('/student-dashboard')}>
+        ← Back
       </button>
-  </div>
-</div>
+
+      <h2 className="page-title">{course.title}</h2>
+      <p>{course.description}</p>
+
+      <div className="course-layout-grid">
+        {/* Center Column: Course Materials */}
+        <div className="course-main-content">
+          <h3>Course Materials</h3>
+          {course.materials && course.materials.length > 0 ? (
+            <ul className="materials-list">
+              {course.materials.map((material) => (
+                <li key={material._id} className="card material-item">
+                  <strong>{material.title}</strong>{" "}
+                  {material.description && `- ${material.description}`} <br />
+                  <a
+                    href={material.fileUrl || material.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    View Material
+                  </a>
+                  <br />
+                  <small>
+                    Uploaded on {new Date(material.createdAt || material.uploadedAt).toLocaleDateString()}
+                  </small>
+                  {/* 🔽 CLASSWORK SUBMISSION UI PER MATERIAL */}
+                  <div className="classwork-upload">
+                    <h5>Submit Classwork</h5>
+                    <textarea
+                      placeholder="Enter your classwork here"
+                      value={classwork[material._id] || ""}
+                      onChange={(e) => handleClassworkChange(e, material._id)}
+                      rows="2"
+                      className="submission-textarea"
+                    />
+                    <input
+                      type="file"
+                      accept="*/*"
+                      onChange={(e) => handleClassworkFileChange(e, material._id)}
+                      className="file-input"
+                    />
+                    <button
+                      onClick={() => handleSubmitClasswork(material._id)}
+                      className="button button-secondary"
+                    >
+                      Submit Classwork
+                    </button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p>No materials available.</p>
+          )}
+        </div>
+
+
+        {/* Right Column: Assignments */}
+        <aside className="course-sidebar">
+          <h3>Assignments</h3>
+          {course.assignments.length === 0 ? (
+            <p className="empty-message">No assignments available.</p>
+          ) : (
+            <ul className="assignment-list">
+              {course.assignments.map((assignment) => (
+                <li key={assignment._id} className="card assignment-item">
+                  <h4>{assignment.title}</h4>
+                  <p>{assignment.description}</p>
+                  <p><strong>Due Date:</strong> {new Date(assignment.dueDate).toLocaleDateString()}</p>
+
+                  {assignment.submissions?.length > 0 ? (
+                    <div className="submission-preview">
+                      <p><strong>Your previous submissions:</strong></p>
+                      {assignment.submissions.map((sub, idx) => (
+                        <div key={sub._id || idx} className="submission-entry">
+                          {sub.content && <p>{sub.content}</p>}
+                          {sub.fileUrl && (
+                            <p><a href={sub.fileUrl} target="_blank" rel="noopener noreferrer">View submitted file</a></p>
+                          )}
+                          <p className="submission-date">Submitted on: {new Date(sub.createdAt).toLocaleString()}</p>
+                          {sub.grade !== undefined && (
+                            <p className="submission-grade">Grade: {sub.grade}</p>
+                          )}
+                          <hr />
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="empty-message">You haven't submitted this assignment yet.</p>
+                  )}
+
+                  <textarea
+                    placeholder="Enter your submission here"
+                    value={submission[assignment._id] || ""}
+                    onChange={(e) => handleSubmissionChange(e, assignment._id)}
+                    rows="3"
+                    className="submission-textarea"
+                  />
+
+                  <input
+                    type="file"
+                    accept="*/*"
+                    onChange={(e) => handleFileChange(e, assignment._id)}
+                    className="file-input"
+                  />
+
+                  <button
+                    onClick={() => handleSubmitAssignment(assignment._id)}
+                    className="button button-primary"
+                  >
+                    Submit
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </aside>
+        <button
+          className="button button-secondary"
+          onClick={() => navigate(`/student/courses/${course._id}/reviews`)}
+        >
+          Review this Course
+        </button>
+      </div>
+    </div>
 
   );
 };

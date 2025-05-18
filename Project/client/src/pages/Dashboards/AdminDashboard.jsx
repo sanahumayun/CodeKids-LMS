@@ -15,59 +15,64 @@ const AdminDashboard = () => {
   };
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const authToken = localStorage.getItem("authToken");
-        const headers = {
-          Authorization: `Bearer ${authToken}`,
-        };
+  const fetchData = async () => {
+    try {
+      const authToken = localStorage.getItem("authToken");
+      const headers = {
+        Authorization: `Bearer ${authToken}`,
+      };
 
-        // Fetch all courses
-        const courseRes = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/courses/admin/courses`, { headers });
-        const allCourses = courseRes.data;
-        setCourses(allCourses);
+      // Fetch all enriched courses
+      const courseRes = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/courses/admin/courses`, { headers });
+      const allCourses = courseRes.data.courses || courseRes.data;  // support both array or { courses: [...] }
+      setCourses(allCourses);
 
-        // Fetch tutor and student counts
-        const [tutorsRes, studentsRes] = await Promise.all([
-          axios.get(`${process.env.REACT_APP_API_BASE_URL}/users?role=tutor`, { headers }),
-          axios.get(`${process.env.REACT_APP_API_BASE_URL}/users?role=student`, { headers }),
-        ]);
+      // Fetch tutor and student counts
+      const [tutorsRes, studentsRes] = await Promise.all([
+        axios.get(`${process.env.REACT_APP_API_BASE_URL}/users?role=tutor`, { headers }),
+        axios.get(`${process.env.REACT_APP_API_BASE_URL}/users?role=student`, { headers }),
+      ]);
 
-        setTutorCount(tutorsRes.data.length);
-        setStudentCount(studentsRes.data.length);
+      setTutorCount(tutorsRes.data.length);
+      setStudentCount(studentsRes.data.length);
 
-        // Calculate top 3 rated courses
-        const coursesWithAvg = await Promise.all(
-          allCourses.map(async (course) => {
-            const reviewRes = await axios.get(
-              `${process.env.REACT_APP_API_BASE_URL}/courses/admin/reviews`,
-              { headers }
-            );
-            const allRatings = reviewRes.data.reviews.flatMap(r =>
-              r.responses.map(q => q.rating)
-            );
-            const avgRating =
-              allRatings.length > 0
-                ? (allRatings.reduce((a, b) => a + b, 0) / allRatings.length).toFixed(1)
-                : null;
+      // Fetch all reviews once
+      const reviewRes = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/courses/admin/reviews`, { headers });
+      const reviews = reviewRes.data.reviews;
 
-            return { ...course, avgRating };
-          })
-        );
+      // Map courseId => [ratings...]
+      const ratingsByCourse = {};
+      reviews.forEach(review => {
+        const courseId = review.course;
+        const ratings = review.responses.map(r => r.rating);
+        if (!ratingsByCourse[courseId]) ratingsByCourse[courseId] = [];
+        ratingsByCourse[courseId].push(...ratings);
+      });
 
-        const top3 = coursesWithAvg
-          .filter(c => c.avgRating !== null)
-          .sort((a, b) => b.avgRating - a.avgRating)
-          .slice(0, 3);
+      // Enrich courses with avgRating
+      const coursesWithAvg = allCourses.map(course => {
+        const ratings = ratingsByCourse[course._id] || [];
+        const avgRating =
+          ratings.length > 0
+            ? (ratings.reduce((a, b) => a + b, 0) / ratings.length).toFixed(1)
+            : null;
+        return { ...course, avgRating };
+      });
 
-        setTopCourses(top3);
-      } catch (err) {
-        console.error("Failed to load admin dashboard:", err);
-      }
-    };
+      const top3 = coursesWithAvg
+        .filter(c => c.avgRating !== null)
+        .sort((a, b) => b.avgRating - a.avgRating)
+        .slice(0, 3);
 
-    fetchData();
-  }, []);
+      setTopCourses(top3);
+    } catch (err) {
+      console.error("Failed to load admin dashboard:", err);
+    }
+  };
+
+  fetchData();
+}, []);
+
 
 
   return (

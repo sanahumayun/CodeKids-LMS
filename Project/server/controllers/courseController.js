@@ -68,9 +68,9 @@ exports.getAllCourses = async (req, res) => {
 
 exports.createCourse = async (req, res) => {
   try {
-    const { title, description, instructorId } = req.body;
+    const { title, description, instructorId, startDate, endDate } = req.body;
     
-    const newCourse = await Course.create({ title, description, instructorId });
+    const newCourse = await Course.create({ title, description, instructorId, startDate, endDate });
     console.log('✅ Course created successfully:', newCourse.title);
     
     console.log('Calling updateChatRoom with:', newCourse._id, instructorId);
@@ -89,12 +89,33 @@ exports.createCourse = async (req, res) => {
   }
 };
 
+exports.getAdminCourseDetail = async (req, res) => {
+  console.log(`are you here?`);
+  try {
+    const { courseId } = req.params;
+
+    const course = await Course.findById(courseId)
+      .populate('instructorId', 'name email') // Fetch tutor info
+      .populate('studentsEnrolled', 'name email') // Fetch student info
+      .populate({
+        path: 'assignments',
+        select: 'title description dueDate fileUrl createdAt maxScore',
+      });
+
+    if (!course) {
+      return res.status(404).json({ error: 'Course not found' });
+    }
+
+    res.status(200).json({ course });
+  } catch (error) {
+    console.error('Error fetching admin course detail:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
 exports.getMyEnrolledCourses = async (req, res) => {
   try {
-    if (req.user.role !== 'student') {
-      console.error('User is not a student, role:', req.user.role);
-      return res.status(403).json({ error: 'Only students can fetch enrolled courses' });
-    }
+
     const courses = await Course.find({ studentsEnrolled: req.user.id })
       .populate('instructorId', 'name email')
       .populate('assignments');
@@ -108,11 +129,6 @@ exports.getMyEnrolledCourses = async (req, res) => {
 
 exports.getTutorCourses = async (req, res) => {
   try {
-    if (req.user.role !== 'tutor') {
-      console.error('User is not a tutor, role:', req.user.role);
-      return res.status(403).json({ error: 'Only tutors can fetch their teaching courses' });
-    }
-
     const tutorId = req.user.id;
 
     const courses = await Course.find({ instructorId: tutorId })
@@ -196,36 +212,6 @@ exports.removeStudent = async (req, res) => {
   }
 };
 
-exports.uploadAssignment = async (req, res) => {
-  try {
-    const { courseId } = req.params;
-    const { title, description, dueDate, maxScore } = req.body;
-    const tutorId = req.user.id;
-    const file = req.file;
-
-    const newAssignment = new Assignment({
-      course: courseId,
-      tutor: tutorId,
-      title,
-      description,
-      dueDate,
-      maxScore,
-      fileUrl: file ? file.location : null,
-    });
-
-    const savedAssignment = await newAssignment.save();
-
-    await Course.findByIdAndUpdate(courseId, {
-      $push: { assignments: savedAssignment._id },
-    });
-
-    res.status(201).json({ message: 'Assignment uploaded successfully', assignment: savedAssignment });
-  } catch (err) {
-    console.error('Error uploading assignment:', err);
-    res.status(500).json({ error: 'Failed to upload assignment', details: err.message });
-  }
-};
-
 exports.getTutorCourseDetail = async (req, res) => {
   try {
     const { courseId } = req.params;
@@ -236,11 +222,6 @@ exports.getTutorCourseDetail = async (req, res) => {
 
     if (!course) {
       return res.status(404).json({ error: 'Course not found' });
-    }
-
-    // Optional: Check if tutor owns the course
-    if (course.instructorId.toString() !== req.user.id) {
-      return res.status(403).json({ error: 'You are not authorized to view this course' });
     }
 
     const reviews = await Review.find({ courseId }).select('responses comment createdAt');
@@ -329,43 +310,36 @@ exports.getStudentCourseDetail = async (req, res) => {
   }
 };
 
-exports.uploadCourseMaterial = async (req, res) => {
+exports.getAllClassworksForCourse = async (req, res) => {
   try {
     const { courseId } = req.params;
-    const tutorId = req.user.id;
-    const { title, description } = req.body;
-    const file = req.file;
 
-    if (!title) {
-      return res.status(400).json({ error: 'Material title is required' });
-    }
-    if (!file) {
-      return res.status(400).json({ error: 'Material file is required' });
-    }
-
-    const course = await Course.findById(courseId);
+    const course = await Course.findById(courseId).populate('assignments');
     if (!course) {
       return res.status(404).json({ error: 'Course not found' });
     }
-    if (course.instructorId.toString() !== tutorId) {
-      return res.status(403).json({ error: 'You are not the instructor of this course' });
-    }
 
-    const newMaterial = {
-      title,
-      description: description || '',
-      fileUrl: file.location, // <-- ✅ use file.location like in assignment upload
-      uploadedBy: tutorId,
-      createdAt: new Date(),
-    };
+    const assignmentsWithSubmissions = await Promise.all(
+      course.assignments.map(async (assignment) => {
+        const submissions = await Submission.find({ assignmentId: assignment._id })
+          .populate('studentId', 'name email')
+          .lean();
 
-    course.materials.push(newMaterial);
-    await course.save();
+        return {
+          ...assignment.toObject(),
+          submissions,
+        };
+      })
+    );
 
-    res.status(201).json({ message: 'Material saved successfully', material: newMaterial });
+    res.status(200).json({ courseTitle: course.title, assignments: assignmentsWithSubmissions });
   } catch (err) {
-    console.error('Error saving course material:', err);
-    res.status(500).json({ error: 'Failed to save material' });
+    console.error('Error fetching classworks:', err);
+    res.status(500).json({ error: 'Failed to fetch classworks', details: err.message });
   }
 };
+
+
+
+
 

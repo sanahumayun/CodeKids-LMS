@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 const AdminReviewsPage = () => {
   const [reviews, setReviews] = useState([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchReviews = async () => {
@@ -25,6 +27,12 @@ const AdminReviewsPage = () => {
 
   return (
     <div className="dashboard-main">
+      <button 
+        className="button button-secondary" 
+        onClick={() => navigate(-1)}
+      >
+        ← Back
+      </button>
       <h1 className="dashboard-heading">All Course Reviews</h1>
       {reviews.length === 0 ? (
         <p>No reviews found.</p>
@@ -47,8 +55,10 @@ const AdminReviewsPage = () => {
                 <td>{rev.courseId?.title}</td>
                 <td>{rev.instructorId?.name}</td>
                 <td>
-                  {Object.entries(rev.responses).map(([q, val]) => (
-                    <div key={q}>{q}: {val}</div>
+                  {rev.responses.map((resp) => (
+                    <div key={resp._id}>
+                      <strong>{resp.question}</strong>: {resp.rating}
+                    </div>
                   ))}
                 </td>
                 <td>{rev.comment || '—'}</td>
@@ -56,6 +66,7 @@ const AdminReviewsPage = () => {
               </tr>
             ))}
           </tbody>
+
         </table>
       )}
     </div>

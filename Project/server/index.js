@@ -52,7 +52,9 @@ app.use('/api/auth', authRoutes);
 app.use('/api/users', require('./routes/userRoutes'));
 app.use("/api/courses", require("./routes/courseRoutes"));
 app.use('/api/courses', require("./routes/assignmentRoutes"));
+app.use('/api/courses', require("./routes/materialRoutes"));
 app.use("/api/courses", require("./routes/submissionRoutes"));
+// app.use("/api/courses", require("./routes/classworkRoutes"));
 app.use("/api/courses", require("./routes/reviewRoutes"));
 app.use("/api/courses", require("./routes/feedbackRoutes"));
 

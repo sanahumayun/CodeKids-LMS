@@ -7,6 +7,8 @@ const CreateCourse = () => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [instructorId, setInstructorId] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
   const [instructors, setInstructors] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -16,6 +18,8 @@ const CreateCourse = () => {
       Authorization: `Bearer ${token}`,
     },
   };
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchInstructors = async () => {
@@ -37,13 +41,21 @@ const CreateCourse = () => {
     try {
       await axios.post(
         `${process.env.REACT_APP_API_BASE_URL}/courses/admin/courses/create`,
-        { title, description, instructorId },
+        {
+          title,
+          description,
+          instructorId,
+          startDate,
+          endDate,
+        },
         config
       );
 
       setTitle("");
       setDescription("");
       setInstructorId("");
+      setStartDate("");
+      setEndDate("");
       toast.success("Course and chatroom created successfully!");
     } catch (err) {
       console.error("Course creation failed:", err);
@@ -52,8 +64,6 @@ const CreateCourse = () => {
       setLoading(false);
     }
   };
-
-  const navigate = useNavigate();
 
   return (
     <div className="container">
@@ -109,6 +119,30 @@ const CreateCourse = () => {
                 </option>
               ))}
             </select>
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Start Date</label>
+            <input
+              type="date"
+              className="form-input"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              required
+              disabled={loading}
+            />
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">End Date</label>
+            <input
+              type="date"
+              className="form-input"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              required
+              disabled={loading}
+            />
           </div>
 
           <button 
