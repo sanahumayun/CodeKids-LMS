@@ -1,11 +1,16 @@
 import React, { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { toast } from "react-toastify";
 
 const TutorFeedbackPage = () => {
-  const [courses, setCourses] = useState([]);
+  const location = useLocation();
+  const courseId = location.state?.courseId;
+  const navigate = useNavigate();
+
   const [students, setStudents] = useState([]);
-  const [selectedCourse, setSelectedCourse] = useState("");
   const [selectedStudent, setSelectedStudent] = useState("");
+  const [courseTitle, setCourseTitle] = useState("");
   const [formData, setFormData] = useState({
     comments: "",
     ratings: {
@@ -17,29 +22,27 @@ const TutorFeedbackPage = () => {
   });
 
   useEffect(() => {
-    const fetchCourses = async () => {
+    const fetchCourse = async () => {
       try {
         const authToken = localStorage.getItem("authToken");
         const headers = { Authorization: `Bearer ${authToken}` };
 
-        const res = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/courses/tutor/courses`, { headers });
-        setCourses(res.data);
-      } catch (error) {
-        console.error("Error fetching tutor courses:", error);
+        const res = await axios.get(
+          `${process.env.REACT_APP_API_BASE_URL}/courses/tutor/courses/${courseId}`,
+          { headers }
+        );
+
+        setStudents(res.data.studentsEnrolled || []);
+        setCourseTitle(res.data.title || "Course");
+      } catch (err) {
+        console.error("Error fetching course:", err);
       }
     };
 
-    fetchCourses();
-  }, []);
-
-  useEffect(() => {
-    const course = courses.find((c) => c._id === selectedCourse);
-    if (course) {
-        setStudents(course.studentsEnrolled);
-    } else {
-        setStudents([]);
+    if (courseId) {
+      fetchCourse();
     }
-    }, [selectedCourse, courses]);
+  }, [courseId]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -56,8 +59,8 @@ const TutorFeedbackPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!selectedCourse || !selectedStudent) {
-      return alert("Please select both course and student.");
+    if (!selectedStudent) {
+      return toast.error("Please select a student.");
     }
 
     try {
@@ -67,7 +70,7 @@ const TutorFeedbackPage = () => {
       await axios.post(
         `${process.env.REACT_APP_API_BASE_URL}/courses/tutor/feedback/submit`,
         {
-          courseId: selectedCourse,
+          courseId,
           studentId: selectedStudent,
           comments: formData.comments,
           ratings: formData.ratings,
@@ -88,55 +91,77 @@ const TutorFeedbackPage = () => {
       });
     } catch (error) {
       console.error("Error submitting feedback:", error);
-      alert("Failed to submit feedback.");
+      toast.error("Failed to submit feedback.");
     }
   };
 
   return (
     <div className="container">
-      <h2>Submit Feedback</h2>
+      <button className="button button-secondary" onClick={() => navigate('/tutor-dashboard')}>← Back</button>
+      <h2>Submit Feedback for: {courseTitle}</h2>
 
       <form className="form" onSubmit={handleSubmit}>
-        <label>Select Course:</label>
-        <select value={selectedCourse} onChange={(e) => setSelectedCourse(e.target.value)}>
-          <option value="">-- Select Course --</option>
-          {courses.map((course) => (
-            <option key={course._id} value={course._id}>
-              {course.title}
+        <label>Select Student:</label>
+        <select
+          value={selectedStudent}
+          onChange={(e) => setSelectedStudent(e.target.value)}
+        >
+          <option value="">-- Select Student --</option>
+          {students.map((student) => (
+            <option key={student._id} value={student._id}>
+              {student.name}
             </option>
           ))}
         </select>
 
-        {selectedCourse && (
-          <>
-            <label>Select Student:</label>
-            <select value={selectedStudent} onChange={(e) => setSelectedStudent(e.target.value)}>
-              <option value="">-- Select Student --</option>
-              {students.map((student) => (
-                <option key={student._id} value={student._id}>
-                  {student.name}
-                </option>
-              ))}
-            </select>
-          </>
-        )}
-
         {selectedStudent && (
           <>
             <label>Comments:</label>
-            <textarea name="comments" value={formData.comments} onChange={handleChange} />
+            <textarea
+              name="comments"
+              value={formData.comments}
+              onChange={handleChange}
+            />
 
             <label>Understanding (0–5):</label>
-            <input type="number" name="understanding" min="0" max="5" value={formData.ratings.understanding} onChange={handleChange} />
+            <input
+              type="number"
+              name="understanding"
+              min="0"
+              max="5"
+              value={formData.ratings.understanding}
+              onChange={handleChange}
+            />
 
             <label>Participation (0–5):</label>
-            <input type="number" name="participation" min="0" max="5" value={formData.ratings.participation} onChange={handleChange} />
+            <input
+              type="number"
+              name="participation"
+              min="0"
+              max="5"
+              value={formData.ratings.participation}
+              onChange={handleChange}
+            />
 
             <label>Interest (0–5):</label>
-            <input type="number" name="interest" min="0" max="5" value={formData.ratings.interest} onChange={handleChange} />
+            <input
+              type="number"
+              name="interest"
+              min="0"
+              max="5"
+              value={formData.ratings.interest}
+              onChange={handleChange}
+            />
 
             <label>Homework (0–5):</label>
-            <input type="number" name="homework" min="0" max="5" value={formData.ratings.homework} onChange={handleChange} />
+            <input
+              type="number"
+              name="homework"
+              min="0"
+              max="5"
+              value={formData.ratings.homework}
+              onChange={handleChange}
+            />
 
             <button type="submit">Submit Feedback</button>
           </>

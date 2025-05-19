@@ -81,4 +81,24 @@ exports.getReviewsForCourse = async (req, res) => {
   }
 };
 
+exports.checkIfStudentReviewedCourse = async (req, res) => {
+  console.log(`hello`);
+  try {
+    const { courseId } = req.params;
+    const studentId = req.user.id; 
+    console.log(`student id ${studentId}`);
+
+    if (!courseId) {
+      return res.status(400).json({ error: "Course ID is required" });
+    }
+
+    const review = await Review.findOne({ courseId, studentId });
+
+    res.status(200).json({ hasReview: !!review });
+  } catch (err) {
+    console.error("Error checking student review:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
 

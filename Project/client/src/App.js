@@ -17,7 +17,7 @@ import TutorCourseDetails from "./pages/Courses/TutorCourseDetails";
 import StudentReviewForm from "./pages/Courses/StudentReview";
 import AdminReviewsPage from "./pages/Courses/AdminReviews";
 import TutorFeedbackPage from "./pages/Courses/TutorFeedback";
-import StudentFeedbackPage from "./pages/Courses/StudentFeedback";
+import StudentProgress from "./pages/Courses/StudentProgress";
 import AdminCourseDetail from "./pages/Courses/AdminCourseDetail";
 
 import CreateTutor from "./pages/Create_Accounts/CreateTutor";
@@ -63,7 +63,7 @@ function App() {
         <Route path="/student-dashboard" element={<StudentDashboard />} />
         <Route path="/student/courses/:courseId" element={<StudentCourseDetail />} />
         <Route path="/student/courses/:courseId/reviews" element={<StudentReviewForm />} />
-        <Route path="/student/feedback" element={<StudentFeedbackPage />} />
+        <Route path="/student/progress" element={<StudentProgress />} />
 
         {/* Chat Routes */}
         <Route path="/chat" element={<ChatProvider><ChatLayout /></ChatProvider>} />

@@ -92,7 +92,7 @@ const StudentDashboard = () => {
             aria-expanded={setCourses}
             aria-controls="enrolled-courses-list"
           >
-            My Enrolled Courses {setCourses ? "⬆" : "⬇"}
+            My Enrolled Courses {showCourses ? "⬆" : "⬇"}
           </button>
 
           {/* Dropdown list */}
@@ -113,7 +113,7 @@ const StudentDashboard = () => {
             </ul>
           )}
 
-          <Link to="/student/feedback" className="nav-link">See Feedback</Link>
+          <Link to="/student/progress" className="nav-link">My Progress</Link>
           <Link to="/chat" className="nav-link">Chat with Tutor</Link>
           <button 
             className="button button-secondary logout-button" 

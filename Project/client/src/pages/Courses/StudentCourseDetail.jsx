@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from 'react-toastify';
@@ -10,11 +10,12 @@ const StudentCourseDetail = () => {
   const [submission, setSubmission] = useState({});
   const [files, setFiles] = useState({});
   const { courseId } = useParams();
-  const [classwork, setClasswork] = useState({});
-  const [classworkFiles, setClassworkFiles] = useState({});
   const navigate = useNavigate();
+  const toastId = useRef(null);
 
   useEffect(() => {
+    toastId.current = null;
+
     const fetchCourseDetails = async () => {
       try {
         const authToken = localStorage.getItem("authToken");
@@ -25,6 +26,47 @@ const StudentCourseDetail = () => {
           }
         );
         setCourse(res.data);
+
+        const statusName = typeof res.data.status === "string" ? res.data.status : res.data.status?.name;
+
+        if (statusName === "complete" && !toastId.current) {
+          const reviewCheck = await axios.get(
+          `${process.env.REACT_APP_API_BASE_URL}/courses/student/courses/${courseId}/reviews/check`,
+          { headers: { Authorization: `Bearer ${authToken}` } }
+        );
+
+        const { hasReview } = reviewCheck.data;
+
+        if (!hasReview && !toastId.current) {
+          toastId.current = toast.info(
+            <div>
+              🎓 You've completed this course!&nbsp;
+              <button
+                onClick={() => {
+                  toast.dismiss(toastId.current);
+                  navigate(`/student/courses/${res.data._id}/reviews`);
+                }}
+                style={{
+                  color: "#4f46e5",
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  textDecoration: "underline",
+                }}
+              >
+                Leave a review
+              </button>
+            </div>,
+            {
+              position: "top-center",
+              autoClose: false,
+              closeOnClick: false,
+              closeButton: true,
+            }
+          );
+        }
+      }
+
         setLoading(false);
       } catch (err) {
         console.error("Failed to fetch course details:", err.response ? err.response.data : err.message);
@@ -34,7 +76,16 @@ const StudentCourseDetail = () => {
     };
 
     fetchCourseDetails();
-  }, [courseId]);
+
+    // Clean up toast on unmount or courseId change
+    return () => {
+      if (toastId.current) {
+        toast.dismiss(toastId.current);
+        toastId.current = null;
+      }
+    };
+  }, [courseId, navigate]);
+
 
   const handleSubmissionChange = (e, assignmentId) => {
     setSubmission((prev) => ({
@@ -92,61 +143,6 @@ const StudentCourseDetail = () => {
     }));
   };
 
-  const handleClassworkChange = (e, materialId) => {
-    setClasswork((prev) => ({
-      ...prev,
-      [materialId]: e.target.value,
-    }));
-  };
-
-  const handleClassworkFileChange = (e, materialId) => {
-    const file = e.target.files[0];
-    setClassworkFiles((prev) => ({
-      ...prev,
-      [materialId]: file,
-    }));
-  };
-
-  const handleSubmitClasswork = async (materialId) => {
-    const content = classwork[materialId] || "";
-    const file = classworkFiles[materialId];
-
-    if (!content && !file) {
-      toast.error("Please add text or upload a file for classwork.");
-      return;
-    }
-
-    try {
-      const authToken = localStorage.getItem("authToken");
-      const studentId = localStorage.getItem("userId"); // Assumes you store student ID like this
-
-      const formData = new FormData();
-      formData.append("materialId", materialId); // optional, useful if needed on backend
-      formData.append("content", content);
-      if (file) formData.append("file", file);
-
-      const res = await axios.post(
-        `${process.env.REACT_APP_API_BASE_URL}/courses/student/courses/${courseId}/upload-classwork`,
-        formData,
-        {
-          headers: {
-            Authorization: `Bearer ${authToken}`,
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
-
-      toast.success("Classwork submitted successfully!");
-      setClasswork((prev) => ({ ...prev, [materialId]: "" }));
-      setClassworkFiles((prev) => ({ ...prev, [materialId]: null }));
-    } catch (err) {
-      console.error("Error submitting classwork:", err.response ? err.response.data : err.message);
-      toast.error("Failed to submit classwork.");
-    }
-  };
-
-
-
   if (loading) return <div className="loader">Loading course details...</div>;
   if (error) return <p className="error-message">{error}</p>;
 
@@ -180,29 +176,6 @@ const StudentCourseDetail = () => {
                   <small>
                     Uploaded on {new Date(material.createdAt || material.uploadedAt).toLocaleDateString()}
                   </small>
-                  {/* 🔽 CLASSWORK SUBMISSION UI PER MATERIAL */}
-                  <div className="classwork-upload">
-                    <h5>Submit Classwork</h5>
-                    <textarea
-                      placeholder="Enter your classwork here"
-                      value={classwork[material._id] || ""}
-                      onChange={(e) => handleClassworkChange(e, material._id)}
-                      rows="2"
-                      className="submission-textarea"
-                    />
-                    <input
-                      type="file"
-                      accept="*/*"
-                      onChange={(e) => handleClassworkFileChange(e, material._id)}
-                      className="file-input"
-                    />
-                    <button
-                      onClick={() => handleSubmitClasswork(material._id)}
-                      className="button button-secondary"
-                    >
-                      Submit Classwork
-                    </button>
-                  </div>
                 </li>
               ))}
             </ul>
@@ -272,12 +245,6 @@ const StudentCourseDetail = () => {
             </ul>
           )}
         </aside>
-        <button
-          className="button button-secondary"
-          onClick={() => navigate(`/student/courses/${course._id}/reviews`)}
-        >
-          Review this Course
-        </button>
       </div>
     </div>
 

@@ -16,6 +16,14 @@ router.get(
   reviewController.getAllReviews
 );
 
+router.get(
+  '/student/courses/:courseId/reviews/check',
+  authenticate,
+  checkRole(['student']),
+  reviewController.checkIfStudentReviewedCourse
+);
+
+
 router.get('/student/courses/:courseId/reviews', authenticate, checkRole(['student', 'tutor']), reviewController.getReviewsForCourse);
 
 

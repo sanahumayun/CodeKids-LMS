@@ -1,5 +1,5 @@
 
-const Assignment = require('../models/Assignment');
+const Feedback = require('../models/Feedback');
 const Course = require('../models/Course');
 const ChatRoom = require('../models/ChatRoom');
 const Submission = require('../models/Submission');
@@ -115,17 +115,41 @@ exports.getAdminCourseDetail = async (req, res) => {
 
 exports.getMyEnrolledCourses = async (req, res) => {
   try {
+    const studentId = req.user.id;
 
-    const courses = await Course.find({ studentsEnrolled: req.user.id })
+    const courses = await Course.find({ studentsEnrolled: studentId })
       .populate('instructorId', 'name email')
-      .populate('assignments');
-    console.log('Courses fetched for student:', req.user.id);
-    res.status(200).json(courses);
+      .populate('assignments')
+      .lean(); // Use .lean() to allow adding custom fields
+
+    // Fetch all feedbacks for this student
+    const feedbacks = await Feedback.find({ studentId }).lean();
+
+    // Map feedbacks by courseId for quick lookup
+    const feedbackMap = {};
+    feedbacks.forEach(fb => {
+      feedbackMap[fb.courseId.toString()] = fb;
+    });
+
+    // Attach feedback only if course is complete
+    const enrichedCourses = courses.map(course => {
+      const courseStatus = typeof course.status === 'string' ? course.status : course.status?.name;
+      const feedback = feedbackMap[course._id.toString()];
+      return {
+        ...course,
+        status: courseStatus,
+        feedback: courseStatus === 'complete' && feedback ? feedback : null,
+      };
+    });
+
+    console.log('Courses with feedback fetched for student:', studentId);
+    res.status(200).json(enrichedCourses);
   } catch (err) {
     console.error('Error fetching courses for student:', err);
     res.status(500).json({ error: 'Failed to fetch your courses', details: err.message });
   }
 };
+
 
 exports.getTutorCourses = async (req, res) => {
   try {
@@ -243,13 +267,11 @@ exports.updateCourseStatus = async (req, res) => {
     const { courseId } = req.params;
     const { status } = req.body;
 
-    const course = await Course.findById(courseId);
+    const course = await Course.findById(courseId)
+      .populate('studentsEnrolled', 'name email')
+      .populate('instructorId', 'name email');
     if (!course) {
       return res.status(404).json({ error: 'Course not found' });
-    }
-
-    if (course.instructorId.toString() !== req.user.id) {
-      return res.status(403).json({ error: 'You are not authorized to update this course' });
     }
 
     course.status = status;
@@ -276,6 +298,7 @@ exports.getStudentCourseDetail = async (req, res) => {
       })
       .populate('studentsEnrolled', 'name email')
       .populate('materials')
+      .populate('status')
       .lean();
 
     if (!course) {

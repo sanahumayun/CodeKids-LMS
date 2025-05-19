@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
@@ -26,7 +26,7 @@ const TutorCourseDetailPage = () => {
   const [error, setError] = useState("");
   const [showAssignmentForm, setShowAssignmentForm] = useState(false);
   const [showMaterialForm, setShowMaterialForm] = useState(false);
-
+  const toastId = useRef(null);
 
   useEffect(() => {
     const fetchCourseDetails = async () => {
@@ -36,6 +36,38 @@ const TutorCourseDetailPage = () => {
         });
         setCourse(res.data);
         setLoading(false);
+
+        const statusName = typeof res.data.status === "string" ? res.data.status : res.data.status?.name
+
+        if (statusName === "complete" && !toastId.current) {
+          toastId.current = toast.info(
+            <div>
+              This course is completed. Give feedback to your students!&nbsp;
+              <button
+                onClick={() => {
+                  toast.dismiss(toastId.current);
+                  navigate(`/tutor/feedback`, { state: { courseId: res.data._id } });
+                }}
+                style={{
+                  color: "#4f46e5",
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  textDecoration: "underline",
+                }}
+              >
+                Give Feedback
+              </button>
+            </div>,
+            {
+              position: "top-center",
+              autoClose: false,
+              closeOnClick: false,
+              closeButton: true,
+            }
+          );
+        }
+
       } catch (err) {
         console.error("Error fetching course detail:", err);
         setError("Failed to load course.");
@@ -144,7 +176,7 @@ const TutorCourseDetailPage = () => {
 
       const gradesInit = {};
       res.data.submissions.forEach((sub) => {
-        gradesInit[sub._id] = sub.grade ?? ""; // empty string if no grade
+        gradesInit[sub._id] = sub.grade ?? ""; 
       });
       setGrades((prev) => ({
         ...prev,
@@ -215,25 +247,6 @@ const TutorCourseDetailPage = () => {
     } catch (err) {
       console.error("Upload failed:", err);
       toast.error("Failed to upload assignment.");
-    }
-  };
-
-
-  const handleStatusChange = async (newStatus) => {
-    try {
-      const response = await axios.patch(
-        `${process.env.REACT_APP_API_BASE_URL}/courses/${courseId}/status`,
-        { status: newStatus },
-        { withCredentials: true }
-      );
-
-      if (response.data.success) {
-        setCourse((prev) => ({ ...prev, status: newStatus }));
-        toast.success("Status updated!");
-      }
-    } catch (err) {
-      console.error("Error updating status:", err);
-      toast.error("Failed to update status.");
     }
   };
 
@@ -457,20 +470,6 @@ const TutorCourseDetailPage = () => {
         ) : (
           <p>No feedback submitted yet.</p>
         )}
-      </div>
-
-
-      {/* Course Status */}
-      <div className="status-control">
-        <label>Status:</label>
-        <select
-          value={course.status}
-          onChange={(e) => handleStatusChange(e.target.value)}
-          className="course-status-dropdown"
-        >
-          <option value="in progress">In Progress</option>
-          <option value="complete">Complete</option>
-        </select>
       </div>
     </div>
 

@@ -109,6 +109,27 @@ const handleDeleteMaterial = async (materialId) => {
   }
 };
 
+const handleStatusChange = async (newStatus) => {
+    try {
+      const response = await axios.patch(
+        `${process.env.REACT_APP_API_BASE_URL}/courses/admin/courses/${courseId}/status`,
+        { status: newStatus },
+        { headers }
+      );
+
+      if (response.data.course) {
+      setCourse(response.data.course); // ✅ Fully update the course state
+      toast.success("Status updated!");
+    } else {
+      toast.error("No course data returned.");
+    }
+    } catch (err) {
+      console.error("Error updating status:", err);
+      toast.error("Failed to update status.");
+    }
+  };
+
+
 
   if (!course) return <p>Loading course details...</p>;
 
@@ -125,6 +146,19 @@ const handleDeleteMaterial = async (materialId) => {
         <p><strong>Description:</strong> {course.description}</p>
         <p><strong>Instructor:</strong> {course.instructorId?.name} ({course.instructorId?.email})</p>
         <p><strong>Status:</strong> {course.status}</p>
+      </div>
+
+      {/* Course Status */}
+      <div className="status-control">
+        <label>Status:</label>
+        <select
+          value={course.status}
+          onChange={(e) => handleStatusChange(e.target.value)}
+          className="course-status-dropdown"
+        >
+          <option value="in progress">In Progress</option>
+          <option value="complete">Complete</option>
+        </select>
       </div>
 
       <div className="card">
