@@ -11,7 +11,9 @@ const feedbackSchema = new mongoose.Schema({
     interest: Number,
     homework: Number,
   },
-  createdAt: { type: Date, default: Date.now }
+  createdAt: { type: Date, default: Date.now },
+  approved: { type: Boolean, default: false },
+  pdfUrl: String,
 });
 
 module.exports = mongoose.model('Feedback', feedbackSchema);

@@ -105,7 +105,7 @@ exports.getAdminCourseDetail = async (req, res) => {
     if (!course) {
       return res.status(404).json({ error: 'Course not found' });
     }
-
+    console.log(`course assignments: ${course.assignments}`);
     res.status(200).json({ course });
   } catch (error) {
     console.error('Error fetching admin course detail:', error);
@@ -239,6 +239,7 @@ exports.removeStudent = async (req, res) => {
 exports.getTutorCourseDetail = async (req, res) => {
   try {
     const { courseId } = req.params;
+    const tutorId = req.user.id;  // get tutor ID from authenticated user
 
     const course = await Course.findById(courseId)
       .populate('studentsEnrolled', 'name email')
@@ -248,14 +249,23 @@ exports.getTutorCourseDetail = async (req, res) => {
       return res.status(404).json({ error: 'Course not found' });
     }
 
-    const reviews = await Review.find({ courseId }).select('responses comment createdAt');
+    // Find feedbacks submitted by this tutor for this course
+    const feedbacks = await Feedback.find({ courseId, tutorId }).select('studentId');
 
-    const courseWithReviews = {
+    const reviewedStudentIds = feedbacks.map(fb => fb.studentId.toString());
+
+    // Filter enrolled students: only include those who have NOT been reviewed
+    const studentsNotReviewed = course.studentsEnrolled.filter(
+      (student) => !reviewedStudentIds.includes(student._id.toString())
+    );
+
+    // Return course details with filtered students
+    const courseWithFilteredStudents = {
       ...course.toObject(),
-      reviews, 
+      studentsEnrolled: studentsNotReviewed,
     };
 
-    res.status(200).json(courseWithReviews);
+    res.status(200).json(courseWithFilteredStudents);
   } catch (err) {
     console.error('Error fetching tutor course detail:', err);
     res.status(500).json({ error: 'Failed to fetch course details', details: err.message });
@@ -267,15 +277,23 @@ exports.updateCourseStatus = async (req, res) => {
     const { courseId } = req.params;
     const { status } = req.body;
 
-    const course = await Course.findById(courseId)
-      .populate('studentsEnrolled', 'name email')
-      .populate('instructorId', 'name email');
-    if (!course) {
+    // Update the course status
+    const courseToUpdate = await Course.findById(courseId);
+    if (!courseToUpdate) {
       return res.status(404).json({ error: 'Course not found' });
     }
 
-    course.status = status;
-    await course.save();
+    courseToUpdate.status = status;
+    await courseToUpdate.save();
+
+    // Re-fetch the full course with all necessary populated fields
+    const course = await Course.findById(courseId)
+      .populate('studentsEnrolled', 'name email')
+      .populate('instructorId', 'name email')
+      .populate({
+        path: 'assignments',
+        select: 'title description dueDate fileUrl createdAt maxScore',
+      });
 
     res.status(200).json({ message: 'Course status updated', course });
   } catch (err) {

@@ -137,6 +137,8 @@ const handleStatusChange = async (newStatus) => {
     (s) => !course.studentsEnrolled.some((e) => e._id === s._id)
   );
 
+  console.log(`assignments: ${course.assignments}`);
+
   return (
     <div className="container">
     <button className="button button-secondary" onClick={() => navigate('/admin/courses')}>← Back</button>
@@ -218,7 +220,7 @@ const handleStatusChange = async (newStatus) => {
                 <strong>{a.title}</strong> – {a.description} <br />
                 Due: {new Date(a.dueDate).toLocaleDateString()} | Max Score: {a.maxScore} <br />
                 <a href={a.fileUrl} target="_blank" rel="noreferrer" className="link">
-                  Download
+                  Download Assignment
                 </a>
                 <button
                     className="button danger small"
@@ -242,7 +244,7 @@ const handleStatusChange = async (newStatus) => {
               <li key={m._id} className="list-item">
                 <strong>{m.title}</strong>: {m.description} <br />
                 <a href={m.fileUrl} target="_blank" rel="noreferrer" className="link">
-                  Download
+                  Download Material
                 </a>
                 <button
                     className="button danger small"

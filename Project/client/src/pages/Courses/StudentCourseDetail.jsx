@@ -13,10 +13,7 @@ const StudentCourseDetail = () => {
   const navigate = useNavigate();
   const toastId = useRef(null);
 
-  useEffect(() => {
-    toastId.current = null;
-
-    const fetchCourseDetails = async () => {
+  const fetchCourseDetails = async () => {
       try {
         const authToken = localStorage.getItem("authToken");
         const res = await axios.get(
@@ -75,6 +72,9 @@ const StudentCourseDetail = () => {
       }
     };
 
+  useEffect(() => {
+    toastId.current = null;
+
     fetchCourseDetails();
 
     // Clean up toast on unmount or courseId change
@@ -128,6 +128,7 @@ const StudentCourseDetail = () => {
       toast.success("Assignment submitted successfully!");
       setSubmission((prev) => ({ ...prev, [assignmentId]: "" }));
       setFiles((prev) => ({ ...prev, [assignmentId]: null }));
+      fetchCourseDetails();
     } catch (err) {
       console.error("Error submitting assignment:", err.response ? err.response.data : err.message);
       toast.error("Failed to submit assignment.");
@@ -194,8 +195,16 @@ const StudentCourseDetail = () => {
             <ul className="assignment-list">
               {course.assignments.map((assignment) => (
                 <li key={assignment._id} className="card assignment-item">
-                  <h4>{assignment.title}</h4>
-                  <p>{assignment.description}</p>
+                  <strong>{assignment.title}</strong>{" "}
+                  {assignment.description && `- ${assignment.description}`} <br />
+                  <a
+                    href={assignment.fileUrl || assignment.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    View Assignment
+                  </a>
+                  <br />
                   <p><strong>Due Date:</strong> {new Date(assignment.dueDate).toLocaleDateString()}</p>
 
                   {assignment.submissions?.length > 0 ? (

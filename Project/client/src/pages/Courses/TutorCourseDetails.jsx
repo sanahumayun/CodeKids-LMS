@@ -37,9 +37,20 @@ const TutorCourseDetailPage = () => {
         setCourse(res.data);
         setLoading(false);
 
+        const enrolledStudents = res.data.studentsEnrolled || [];
+        const reviews = res.data.reviews || [];
+
+        const studentsWithFeedback = new Set(
+          reviews.map(review => review.studentId?._id || review.studentId)
+        );
+
+        const hasStudentsWithoutFeedback = enrolledStudents.some(student => 
+          !studentsWithFeedback.has(student._id)
+        );
+
         const statusName = typeof res.data.status === "string" ? res.data.status : res.data.status?.name
 
-        if (statusName === "complete" && !toastId.current) {
+        if (statusName === "complete" && hasStudentsWithoutFeedback && !toastId.current) {
           toastId.current = toast.info(
             <div>
               This course is completed. Give feedback to your students!&nbsp;

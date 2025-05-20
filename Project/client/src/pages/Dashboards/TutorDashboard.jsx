@@ -90,9 +90,6 @@ const TutorDashboard = () => {
               ))}
             </ul>
           )}
-          <Link to="/tutor/feedback" className="nav-link">
-            Give Feedback
-          </Link>
 
           <Link to="/chat" className="nav-link">
             Chat with Student

@@ -7,4 +7,8 @@ router.post('/tutor/feedback/submit', authenticate, checkRole(['tutor']), feedba
 
 router.get('/student/feedback', authenticate, feedbackController.getStudentFeedback);
 
+router.post("/admin/:feedbackId/approve", authenticate, checkRole(['admin']), feedbackController.approveFeedback);
+
+router.get("/admin/feedback/pending", authenticate, checkRole(['admin']), feedbackController.getPendingFeedbacks);
+
 module.exports = router;
