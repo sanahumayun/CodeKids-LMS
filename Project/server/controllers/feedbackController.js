@@ -1,5 +1,5 @@
 const Course = require('../models/Course');
-const User = require('../models/User');
+const userController = require('../controllers/userController');
 const Feedback = require('../models/Feedback');
 const uploadBufferToS3 = require("../utils/s3UploadBuffer");
 const generateFeedbackPDF = require("../utils/pdfGenerator");

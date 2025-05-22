@@ -141,7 +141,7 @@ const handleStatusChange = async (newStatus) => {
 
   return (
     <div className="container">
-    <button className="button button-secondary" onClick={() => navigate('/admin/courses')}>← Back</button>
+    <button className="button button-secondary" onClick={() => navigate(-1)}>← Back</button>
       <h1 className="heading">{course.title}</h1>
 
       <div className="card">

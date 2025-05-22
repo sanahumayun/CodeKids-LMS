@@ -1,5 +1,6 @@
 const Review = require('../models/Review');
 const Course = require('../models/Course');
+const userController = require('../controllers/userController');
 
 exports.submitReview = async (req, res) => {
   try {
@@ -7,14 +8,10 @@ exports.submitReview = async (req, res) => {
     const { courseId } = req.params;
     const { responses, comment } = req.body;
 
-    // Validate that responses is an object and has all questions answered
     if (!responses || typeof responses !== 'object') {
       return res.status(400).json({ error: "Responses must be provided as an object." });
     }
 
-    // Optionally: Validate keys and values here (e.g., check question IDs and values 1-5)
-
-    // Check if student is enrolled in the course
     const course = await Course.findById(courseId);
     if (!course) {
       return res.status(404).json({ error: "Course not found" });
@@ -23,13 +20,11 @@ exports.submitReview = async (req, res) => {
       return res.status(403).json({ error: "You are not enrolled in this course." });
     }
 
-    // Check if review already exists by this student for this course (optional)
     const existingReview = await Review.findOne({ courseId, studentId });
     if (existingReview) {
       return res.status(400).json({ error: "You have already submitted a review for this course." });
     }
 
-    // Create new review
     const review = new Review({
       courseId,
       instructorId: course.instructorId,

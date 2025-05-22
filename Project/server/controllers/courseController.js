@@ -3,7 +3,6 @@ const Feedback = require('../models/Feedback');
 const Course = require('../models/Course');
 const ChatRoom = require('../models/ChatRoom');
 const Submission = require('../models/Submission');
-const Review = require('../models/Review');
 
 const updateChatRoom = async (courseId, instructorId, students = []) => {
   try {

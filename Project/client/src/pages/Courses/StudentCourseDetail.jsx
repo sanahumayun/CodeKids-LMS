@@ -12,22 +12,25 @@ const StudentCourseDetail = () => {
   const { courseId } = useParams();
   const navigate = useNavigate();
   const toastId = useRef(null);
+  const [classworks, setClassworks] = useState([]);
+  const [classworkFile, setClassworkFile] = useState(null);
+  const [classworkDescription, setClassworkDescription] = useState("");
 
   const fetchCourseDetails = async () => {
-      try {
-        const authToken = localStorage.getItem("authToken");
-        const res = await axios.get(
-          `${process.env.REACT_APP_API_BASE_URL}/courses/student/courses/${courseId}`,
-          {
-            headers: { Authorization: `Bearer ${authToken}` },
-          }
-        );
-        setCourse(res.data);
+    try {
+      const authToken = localStorage.getItem("authToken");
+      const res = await axios.get(
+        `${process.env.REACT_APP_API_BASE_URL}/courses/student/courses/${courseId}`,
+        {
+          headers: { Authorization: `Bearer ${authToken}` },
+        }
+      );
+      setCourse(res.data);
 
-        const statusName = typeof res.data.status === "string" ? res.data.status : res.data.status?.name;
+      const statusName = typeof res.data.status === "string" ? res.data.status : res.data.status?.name;
 
-        if (statusName === "complete" && !toastId.current) {
-          const reviewCheck = await axios.get(
+      if (statusName === "complete" && !toastId.current) {
+        const reviewCheck = await axios.get(
           `${process.env.REACT_APP_API_BASE_URL}/courses/student/courses/${courseId}/reviews/check`,
           { headers: { Authorization: `Bearer ${authToken}` } }
         );
@@ -64,20 +67,20 @@ const StudentCourseDetail = () => {
         }
       }
 
-        setLoading(false);
-      } catch (err) {
-        console.error("Failed to fetch course details:", err.response ? err.response.data : err.message);
-        setError("Failed to load course details.");
-        setLoading(false);
-      }
-    };
+      setLoading(false);
+    } catch (err) {
+      console.error("Failed to fetch course details:", err.response ? err.response.data : err.message);
+      setError("Failed to load course details.");
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     toastId.current = null;
 
     fetchCourseDetails();
+    fetchClassworks();
 
-    // Clean up toast on unmount or courseId change
     return () => {
       if (toastId.current) {
         toast.dismiss(toastId.current);
@@ -144,6 +147,76 @@ const StudentCourseDetail = () => {
     }));
   };
 
+  const studentId = localStorage.getItem("user");
+
+  const fetchClassworks = async () => {
+    try {
+      const authToken = localStorage.getItem("authToken");
+      const res = await axios.get(
+        `${process.env.REACT_APP_API_BASE_URL}/courses/${studentId}/${courseId}/classwork`,
+        {
+          headers: { Authorization: `Bearer ${authToken}` },
+        }
+      );
+      setClassworks(res.data);
+    } catch (err) {
+      console.error("Error fetching classwork:", err);
+    }
+  };
+
+  const handleClassworkUpload = async () => {
+    if (!classworkFile) {
+      toast.error("Please select a file to upload.");
+      return;
+    }
+
+    try {
+      const authToken = localStorage.getItem("authToken");
+      const formData = new FormData();
+      formData.append("classworkFile", classworkFile);
+      if (classworkDescription) formData.append("description", classworkDescription);
+
+      await axios.post(
+        `${process.env.REACT_APP_API_BASE_URL}/courses/student/${courseId}/upload-classwork`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      toast.success("Classwork uploaded!");
+      setClassworkDescription("");
+      setClassworkFile(null);
+      fetchClassworks();
+    } catch (err) {
+      console.error("Error uploading classwork:", err);
+      toast.error("Upload failed.");
+    }
+  };
+
+  const handleDeleteClasswork = async (classworkId) => {
+    try {
+      const authToken = localStorage.getItem("authToken");
+      await axios.delete(
+        `${process.env.REACT_APP_API_BASE_URL}/courses/student/${courseId}/${classworkId}`,
+        {
+          headers: { Authorization: `Bearer ${authToken}` },
+        }
+      );
+
+      toast.success("Classwork deleted.");
+      fetchClassworks();
+    } catch (err) {
+      console.error("Error deleting classwork:", err);
+      toast.error("Failed to delete.");
+    }
+  };
+
+
+
   if (loading) return <div className="loader">Loading course details...</div>;
   if (error) return <p className="error-message">{error}</p>;
 
@@ -184,6 +257,54 @@ const StudentCourseDetail = () => {
             <p>No materials available.</p>
           )}
         </div>
+
+        <div className="course-main-content">
+          <h3>Classwork Upload</h3>
+          <textarea
+            placeholder="Optional description"
+            value={classworkDescription}
+            onChange={(e) => setClassworkDescription(e.target.value)}
+            rows="2"
+            className="submission-textarea"
+          />
+          <input
+            type="file"
+            accept="*/*"
+            onChange={(e) => setClassworkFile(e.target.files[0])}
+            className="file-input"
+          />
+          <button onClick={handleClassworkUpload} className="button button-primary">
+            Upload Classwork
+          </button>
+
+          <h4 style={{ marginTop: "1.5rem" }}>Your Uploaded Classworks</h4>
+          {classworks.length === 0 ? (
+            <p className="empty-message">No classwork submitted yet.</p>
+          ) : (
+            <ul className="submission-preview">
+              {classworks.map((cw) => (
+                <li key={cw._id} className="card">
+                  {cw.description && <p>{cw.description}</p>}
+                  <p>
+                    <a href={cw.fileUrl} target="_blank" rel="noopener noreferrer">
+                      View File
+                    </a>
+                  </p>
+                  <p className="submission-date">
+                    Uploaded on: {new Date(cw.createdAt).toLocaleString()}
+                  </p>
+                  <button
+                    onClick={() => handleDeleteClasswork(cw._id)}
+                    className="button button-danger"
+                  >
+                    Delete
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
 
 
         {/* Right Column: Assignments */}

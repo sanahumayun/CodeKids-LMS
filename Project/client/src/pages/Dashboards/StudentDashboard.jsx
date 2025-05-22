@@ -9,6 +9,9 @@ const StudentDashboard = () => {
   const [error, setError] = useState("");
   const [nextDeadlines, setNextDeadlines] = useState(null);
   const [showCourses, setShowCourses] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [notifLoading, setNotifLoading] = useState(true);
+
 
   const handleLogout = () => {
     localStorage.removeItem("token")
@@ -16,7 +19,7 @@ const StudentDashboard = () => {
   }
 
   useEffect(() => {
-  const fetchCoursesAndData = async () => {
+    const fetchCoursesAndData = async () => {
       try {
         const authToken = localStorage.getItem("authToken");
         const res = await axios.get(
@@ -76,6 +79,26 @@ const StudentDashboard = () => {
     fetchCoursesAndData();
   }, []);
 
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        const authToken = localStorage.getItem("authToken");
+        const res = await axios.get(
+          `${process.env.REACT_APP_API_BASE_URL}/notifications/my`,
+          { headers: { Authorization: `Bearer ${authToken}` } }
+        );
+        setNotifications(res.data);
+      } catch (error) {
+        console.error("Failed to load notifications:", error);
+      } finally {
+        setNotifLoading(false);
+      }
+    };
+
+    fetchNotifications();
+  }, []);
+
+
   if (loading) return <div>Loading...</div>;
   if (error) return <div>{error}</div>;
 
@@ -84,10 +107,10 @@ const StudentDashboard = () => {
       <aside className="sidebar">
         <h2 className="sidebar-title">Student</h2>
         <nav className="sidebar-nav">
-          
+
           {/* Dropdown button */}
-          <button 
-            className="button button-secondary" 
+          <button
+            className="button button-secondary"
             onClick={() => setShowCourses((prev) => !prev)}
             aria-expanded={setCourses}
             aria-controls="enrolled-courses-list"
@@ -115,17 +138,54 @@ const StudentDashboard = () => {
 
           <Link to="/student/progress" className="nav-link">My Progress</Link>
           <Link to="/chat" className="nav-link">Chat with Tutor</Link>
-          <button 
-            className="button button-secondary logout-button" 
+          <button
+            className="button button-secondary logout-button"
             onClick={handleLogout}
           >
             Logout
           </button>
         </nav>
       </aside>
-    
+
       <main className="dashboard-main">
         <h1 className="dashboard-heading">Student Dashboard</h1>
+
+        <div className="notifications-section">
+          <h2>Notifications {notifications.filter(n => !n.isRead).length > 0 && `(${notifications.filter(n => !n.isRead).length})`}</h2>
+          {notifLoading && <p>Loading notifications...</p>}
+          {!notifLoading && notifications.length === 0 && <p>No notifications.</p>}
+          {!notifLoading && notifications.length > 0 && (
+            <ul>
+              {notifications.map(notif => (
+                <li
+                  key={notif._id}
+                  style={{ fontWeight: notif.isRead ? 'normal' : 'bold', cursor: 'pointer' }}
+                  onClick={async () => {
+                    if (!notif.isRead) {
+                      try {
+                        const authToken = localStorage.getItem("authToken");
+                        await axios.post(
+                          `${process.env.REACT_APP_API_BASE_URL}/notifications/${notif._id}/read`,
+                          {},
+                          { headers: { Authorization: `Bearer ${authToken}` } }
+                        );
+                        setNotifications(notifications.map(n => n._id === notif._id ? { ...n, isRead: true } : n));
+                      } catch (error) {
+                        console.error('Failed to mark notification as read', error);
+                      }
+                    }
+                    if (notif.link) {
+                      navigate(notif.link);
+                    }
+                  }}
+                >
+                  {notif.message}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
 
         <div className="analytics-cards">
           <div className="analytics-card card">
@@ -158,8 +218,8 @@ const StudentDashboard = () => {
             )}
           </div>
         </div>
-    </main>
-  </div>
+      </main>
+    </div>
   )
 };
 

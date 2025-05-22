@@ -21,6 +21,7 @@ import StudentProgress from "./pages/Courses/StudentProgress";
 import AdminCourseDetail from "./pages/Courses/AdminCourseDetail";
 import AdminFeedbackApprovalPage from "./pages/Courses/AdminFeedbackApproval";
 
+import UserDetailPage from "./pages/Create_Accounts/UserDetail";
 import CreateTutor from "./pages/Create_Accounts/CreateTutor";
 import CreateStudent from "./pages/Create_Accounts/CreateStudent";
 import DeleteAccount from "./pages/Create_Accounts/DeleteAccount";
@@ -57,6 +58,7 @@ function App() {
         <Route path="/admin/reviews" element={<AdminReviewsPage />} />
         <Route path="/admin/delete" element={<DeleteAccount />} />
         <Route path="/admin/feedback-approvals" element={<AdminFeedbackApprovalPage />} />
+        <Route path="/admin/users/:userId" element={<UserDetailPage />} />
 
         <Route path="/tutor-dashboard" element={<TutorDashboard />} />
         <Route path="/tutor/courses/:courseId" element={<TutorCourseDetails />} />

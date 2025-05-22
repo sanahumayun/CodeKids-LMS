@@ -1,6 +1,6 @@
 const Assignment = require('../models/Assignment');
 const Course = require('../models/Course');
-
+const createNotification = require('../utils/createNotif');
 
 exports.uploadAssignment = async (req, res) => {
   try {

@@ -53,9 +53,12 @@ app.use('/api/users', require('./routes/userRoutes'));
 app.use("/api/courses", require("./routes/courseRoutes"));
 app.use('/api/courses', require("./routes/assignmentRoutes"));
 app.use('/api/courses', require("./routes/materialRoutes"));
+app.use('/api/courses', require("./routes/classworkRoutes"));
 app.use("/api/courses", require("./routes/submissionRoutes"));
 app.use("/api/courses", require("./routes/reviewRoutes"));
 app.use("/api/courses", require("./routes/feedbackRoutes"));
+
+app.use("/api/notifications", require("./routes/notifRoutes"));
 
 const server = http.createServer(app);
 
