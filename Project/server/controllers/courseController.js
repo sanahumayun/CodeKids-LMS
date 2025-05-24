@@ -3,6 +3,7 @@ const Feedback = require('../models/Feedback');
 const Course = require('../models/Course');
 const ChatRoom = require('../models/ChatRoom');
 const Submission = require('../models/Submission');
+const createNotification = require('../utils/createNotif');
 
 const updateChatRoom = async (courseId, instructorId, students = []) => {
   try {
@@ -56,7 +57,7 @@ const updateChatRoom = async (courseId, instructorId, students = []) => {
 exports.getAllCourses = async (req, res) => {
   try {
     const courses = await Course.find({}, 'title description instructorId')
-      .populate('instructorId', 'name email') 
+      .populate('instructorId', 'name email')
       .populate('studentsEnrolled', 'name email')
       .populate('assignments');
     res.status(200).json(courses);
@@ -68,14 +69,14 @@ exports.getAllCourses = async (req, res) => {
 exports.createCourse = async (req, res) => {
   try {
     const { title, description, instructorId, startDate, endDate } = req.body;
-    
+
     const newCourse = await Course.create({ title, description, instructorId, startDate, endDate });
     console.log('✅ Course created successfully:', newCourse.title);
-    
+
     console.log('Calling updateChatRoom with:', newCourse._id, instructorId);
     const chatRoom = await updateChatRoom(newCourse._id, instructorId);
     console.log('✅ Chat room  created successfully for course:', newCourse.title);
-    
+
     res.status(201).json({
       success: true,
       message: 'Course and chat room created successfully',
@@ -167,9 +168,9 @@ exports.getTutorCourses = async (req, res) => {
     res.status(200).json(courses);
   } catch (err) {
     console.error('Error fetching courses for tutor:', err);
-    res.status(500).json({ 
-      error: 'Failed to fetch your teaching courses', 
-      details: err.message 
+    res.status(500).json({
+      error: 'Failed to fetch your teaching courses',
+      details: err.message
     });
   }
 };
@@ -193,9 +194,15 @@ exports.enrollStudent = async (req, res) => {
 
     await updateChatRoom(courseId, course.instructorId, course.studentsEnrolled);
 
-    return res.status(200).json({ 
-      message: 'Student enrolled and added to chatroom successfully', 
-      course 
+    await createNotification(
+      studentId,
+      'student',
+      `You have been enrolled in the course "${course.title}".`
+    );
+
+    return res.status(200).json({
+      message: 'Student enrolled and added to chatroom successfully',
+      course
     });
 
   } catch (err) {
@@ -258,13 +265,10 @@ exports.getTutorCourseDetail = async (req, res) => {
       (student) => !reviewedStudentIds.includes(student._id.toString())
     );
 
-    // Return course details with filtered students
-    const courseWithFilteredStudents = {
-      ...course.toObject(),
-      studentsEnrolled: studentsNotReviewed,
-    };
+    const courseObj = course.toObject();
+    courseObj.studentsNotReviewed = studentsNotReviewed;
 
-    res.status(200).json(courseWithFilteredStudents);
+    res.json(courseObj);
   } catch (err) {
     console.error('Error fetching tutor course detail:', err);
     res.status(500).json({ error: 'Failed to fetch course details', details: err.message });
@@ -276,7 +280,6 @@ exports.updateCourseStatus = async (req, res) => {
     const { courseId } = req.params;
     const { status } = req.body;
 
-    // Update the course status
     const courseToUpdate = await Course.findById(courseId);
     if (!courseToUpdate) {
       return res.status(404).json({ error: 'Course not found' });
@@ -285,7 +288,6 @@ exports.updateCourseStatus = async (req, res) => {
     courseToUpdate.status = status;
     await courseToUpdate.save();
 
-    // Re-fetch the full course with all necessary populated fields
     const course = await Course.findById(courseId)
       .populate('studentsEnrolled', 'name email')
       .populate('instructorId', 'name email')
@@ -293,6 +295,35 @@ exports.updateCourseStatus = async (req, res) => {
         path: 'assignments',
         select: 'title description dueDate fileUrl createdAt maxScore',
       });
+
+    const studentIds = course.studentsEnrolled.map(student => student._id.toString());
+    if (status == "complete") {
+      const studentNotifications = studentIds.map(studentId =>
+        createNotification(
+          studentId,
+          'student',
+          `Your course "${course.title}" is now complete. Please rate it by going to the course page!`
+        )
+      );
+    }
+    else
+    {
+      const studentNotifications = studentIds.map(studentId =>
+        createNotification(
+          studentId,
+          'student',
+          `Your course "${course.title}" is in progess`
+        )
+      );
+    }
+
+    const tutorNotification = createNotification(
+      course.instructorId._id.toString(),
+      'tutor',
+      `The course "${course.title}" status is now "${status}". Please submit evaluation reports for your students.`
+    );
+
+    await Promise.all([...studentNotifications, tutorNotification]);
 
     res.status(200).json({ message: 'Course status updated', course });
   } catch (err) {

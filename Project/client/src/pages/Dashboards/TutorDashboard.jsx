@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom"
 import axios from "axios";
+import Notification from "../../components/notifs";
 
 const TutorDashboard = () => {
   const navigate = useNavigate()
@@ -106,6 +107,8 @@ const TutorDashboard = () => {
 
       <main className="dashboard-main">
         <h1 className="dashboard-heading">Tutor Dashboard</h1>
+
+        <Notification></Notification>
 
         <div className="analytics-cards">
           <div className="analytics-card card">

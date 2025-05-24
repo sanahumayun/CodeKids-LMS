@@ -40,7 +40,7 @@ const UserDetailPage = () => {
             <button className="button button-secondary" onClick={() => navigate(-1)}>← Back</button>
             <h1>User Detail: {user.name}</h1>
             <p><strong>Email:</strong> {user.email}</p>
-            <p><strong>Password:</strong> {user.password}</p> {/* Show password here */}
+            <p><strong>Password:</strong> {user.password}</p>
             <p><strong>Role:</strong> {user.role}</p>
             {user.profilePic && (
                 <img

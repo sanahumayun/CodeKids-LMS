@@ -1,7 +1,8 @@
 
-const Submission = require("../models/Submission");  
-const Assignment = require("../models/Assignment");  
-const User = require("../models/User"); 
+const Submission = require("../models/Submission");
+const Assignment = require("../models/Assignment");
+const User = require("../models/User");
+const createNotification = require('../utils/createNotif');
 
 exports.submitAssignment = async (req, res) => {
   try {
@@ -37,6 +38,16 @@ exports.submitAssignment = async (req, res) => {
     const submission = new Submission(submissionData);
 
     await submission.save();
+
+    const assignment = await Assignment.findById(assignmentId).populate('course');
+    if (assignment) {
+      // Notify the tutor
+      await createNotification(
+        assignment.course.instructorId._id,
+        'tutor',
+        `A student has submitted an assignment for "${assignment.title}" in course "${assignment.course.title}".`
+      );
+    }
 
     return res.status(201).json({
       message: "Assignment submitted successfully.",

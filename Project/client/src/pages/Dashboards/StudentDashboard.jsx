@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom"
 import axios from "axios";
+import Notifications from "../../components/notifs";
 
 const StudentDashboard = () => {
   const navigate = useNavigate()
@@ -150,42 +151,7 @@ const StudentDashboard = () => {
       <main className="dashboard-main">
         <h1 className="dashboard-heading">Student Dashboard</h1>
 
-        <div className="notifications-section">
-          <h2>Notifications {notifications.filter(n => !n.isRead).length > 0 && `(${notifications.filter(n => !n.isRead).length})`}</h2>
-          {notifLoading && <p>Loading notifications...</p>}
-          {!notifLoading && notifications.length === 0 && <p>No notifications.</p>}
-          {!notifLoading && notifications.length > 0 && (
-            <ul>
-              {notifications.map(notif => (
-                <li
-                  key={notif._id}
-                  style={{ fontWeight: notif.isRead ? 'normal' : 'bold', cursor: 'pointer' }}
-                  onClick={async () => {
-                    if (!notif.isRead) {
-                      try {
-                        const authToken = localStorage.getItem("authToken");
-                        await axios.post(
-                          `${process.env.REACT_APP_API_BASE_URL}/notifications/${notif._id}/read`,
-                          {},
-                          { headers: { Authorization: `Bearer ${authToken}` } }
-                        );
-                        setNotifications(notifications.map(n => n._id === notif._id ? { ...n, isRead: true } : n));
-                      } catch (error) {
-                        console.error('Failed to mark notification as read', error);
-                      }
-                    }
-                    if (notif.link) {
-                      navigate(notif.link);
-                    }
-                  }}
-                >
-                  {notif.message}
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-
+        <Notifications />
 
         <div className="analytics-cards">
           <div className="analytics-card card">

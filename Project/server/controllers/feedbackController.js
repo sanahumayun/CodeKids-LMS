@@ -3,6 +3,7 @@ const userController = require('../controllers/userController');
 const Feedback = require('../models/Feedback');
 const uploadBufferToS3 = require("../utils/s3UploadBuffer");
 const generateFeedbackPDF = require("../utils/pdfGenerator");
+const createNotification = require('../utils/createNotif');
 
 exports.submitFeedback = async (req, res) => {
   const { courseId, studentId, comments, ratings } = req.body;
@@ -23,8 +24,8 @@ exports.getStudentFeedback = async (req, res) => {
   const studentId = req.user.id;
   try {
     const feedbacks = await Feedback.find({ studentId, approved: true }) // ✅ Only approved
-      .populate('courseId', 'title') 
-      .populate('tutorId', 'name') 
+      .populate('courseId', 'title')
+      .populate('tutorId', 'name')
       .select('comments ratings pdfUrl');
 
     res.status(200).json(feedbacks);
@@ -52,6 +53,19 @@ exports.approveFeedback = async (req, res) => {
     feedback.approved = true;
     feedback.pdfUrl = pdfUrl;
     await feedback.save();
+
+    await Promise.all([
+      createNotification(
+        feedback.studentId._id,
+        'student',
+        `Your evalutaion report for the course "${feedback.courseId.title}" is now available as a PDF.`
+      ),
+      createNotification(
+        feedback.tutorId._id,
+        'tutor',
+        `Your evaluation report for student "${feedback.studentId.name}" in the course "${feedback.courseId.title}" has been approved by Admin.`
+      ),
+    ]);
 
     res.status(200).json({ message: "Feedback approved", pdfUrl });
   } catch (err) {

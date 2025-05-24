@@ -7,6 +7,7 @@ exports.getUserNotifications = async (req, res) => {
 
     // Find notifications for the user, optionally you can filter by userType or something else
     const notifications = await Notification.find({ userId, userType }).sort({ createdAt: -1 });
+    console.log(`notifs: ${notifications}`);
     res.json(notifications);
   } catch (err) {
     console.error('Error fetching notifications:', err);

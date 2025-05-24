@@ -1,6 +1,7 @@
 const Review = require('../models/Review');
 const Course = require('../models/Course');
 const userController = require('../controllers/userController');
+const createNotification = require('../utils/createNotif');
 
 exports.submitReview = async (req, res) => {
   try {
@@ -34,6 +35,12 @@ exports.submitReview = async (req, res) => {
     });
 
     await review.save();
+
+    await createNotification(
+      course.instructorId,
+      'tutor',
+      `A new review has been submitted by a student for your course "${course.title}".`
+    );
 
     res.status(201).json({ message: "Review submitted successfully", review });
   } catch (err) {

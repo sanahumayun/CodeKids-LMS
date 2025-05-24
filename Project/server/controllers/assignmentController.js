@@ -25,6 +25,15 @@ exports.uploadAssignment = async (req, res) => {
       $push: { assignments: savedAssignment._id },
     });
 
+    const course = await Course.findById(courseId).populate('studentsEnrolled', '_id');
+
+    const studentIds = course.studentsEnrolled.map(student => student._id.toString());
+    const message = `You have a new assignment "${title}" uploaded for course "${course.title}".`;
+
+    for (const studentId of studentIds) {
+      await createNotification(studentId, 'student', message);
+    }
+
     res.status(201).json({ message: 'Assignment uploaded successfully', assignment: savedAssignment });
   } catch (err) {
     console.error('Error uploading assignment:', err);

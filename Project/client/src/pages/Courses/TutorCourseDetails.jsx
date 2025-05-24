@@ -31,9 +31,12 @@ const TutorCourseDetailPage = () => {
   useEffect(() => {
     const fetchCourseDetails = async () => {
       try {
+        console.log("Fetching course details for id:", courseId);
         const res = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/courses/tutor/courses/${courseId}`, {
           withCredentials: true,
         });
+
+         console.log("Course details response:", res.data);
         setCourse(res.data);
         setLoading(false);
 
@@ -136,7 +139,6 @@ const TutorCourseDetailPage = () => {
       toast.error("Failed to update grade.");
     }
   };
-
 
   const handleMaterialUpload = async () => {
     const { title, description, file } = materialForm;
@@ -266,7 +268,7 @@ const TutorCourseDetailPage = () => {
 
   return (
     <div className="container">
-      <button className="button button-secondary" onClick={() => navigate('/tutor-dashboard')}>← Back</button>
+      <button className="button button-secondary" onClick={() => navigate(-1)}>← Back</button>
 
       <h2 className="page-title">{course.title}</h2>
       <p className="card-body">{course.description}</p>
