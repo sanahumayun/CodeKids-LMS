@@ -15,13 +15,23 @@ const PORT = process.env.PORT || 5000;
 app.use(express.json());
 
 const allowedOrigins = [
-  process.env.CLIENT_URL,
+  'http://localhost:3000',                    // local dev
+  process.env.CLIENT_URL || 'https://codekids-lms.vercel.app' // production
 ];
 
 app.use(cors({
-  origin: allowedOrigins,
+  origin: function(origin, callback) {
+    // allow requests with no origin (Postman, mobile apps, etc.)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) === -1) {
+      const msg = 'CORS error: Origin not allowed';
+      return callback(new Error(msg), false);
+    }
+    return callback(null, true);
+  },
   credentials: true
 }));
+
 
 mongoose.connect(process.env.MONGO_URI, {
   useNewUrlParser: true,
