@@ -79,10 +79,12 @@ const server = http.createServer(app);
 
 const io = socketIo(server, {
   cors: {
-    origin: process.env.CLIENT_URL || "http://localhost:3000",
+    origin: allowedOrigins, 
     methods: ["GET", "POST"],
-  },
+    credentials: true
+  }
 });
+
 require("./socket/socket")(io);
 
 server.listen(PORT, () => {
