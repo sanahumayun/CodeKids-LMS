@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import axios from "axios"
+import { toast } from 'react-toastify';
 
 const Login = () => {
   const [form, setForm] = useState({ email: "", password: "" })
