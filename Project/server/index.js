@@ -20,17 +20,17 @@ const allowedOrigins = [
 ];
 
 app.use(cors({
-  origin: function(origin, callback) {
-    // allow requests with no origin (Postman, mobile apps, etc.)
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.indexOf(origin) === -1) {
-      const msg = 'CORS error: Origin not allowed';
-      return callback(new Error(msg), false);
-    }
-    return callback(null, true);
-  },
-  credentials: true
+  origin: [
+    'http://localhost:3000',
+    'https://codekids-lms.vercel.app'
+  ],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
+
+// IMPORTANT: explicitly handle preflight
+app.options('*', cors());
 
 
 mongoose.connect(process.env.MONGO_URI, {
