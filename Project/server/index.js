@@ -31,12 +31,18 @@ app.use(cors({
 
 // app.options('/*', cors());
 
-mongoose.connect(process.env.MONGO_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
+mongoose.connect(process.env.MONGO_URI)
+.then(() => {
+  console.log("MongoDB connected");
+
+  server.listen(PORT, () => {
+    console.log(`🚀 Server running on port ${PORT}`);
+  });
+
 })
-.then(() => console.log('MongoDB connected'))
-.catch(err => console.log(err));
+.catch(err => {
+  console.error("MongoDB connection error:", err);
+});
 
 mongoose.connection.once('open', async () => {
   try {
