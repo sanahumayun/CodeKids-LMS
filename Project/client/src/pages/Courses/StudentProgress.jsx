@@ -45,7 +45,7 @@ const StudentProgressPage = () => {
       <h2>My CodeKids Journey</h2>
 
       {progress.map((course) => {
-        const courseFeedback = feedbacks.find(f => f.courseId._id === course._id);
+        const courseFeedback = feedbacks.find(f => f.courseId?._id === course._id);
 
         return (
           <div key={course._id} className="card" style={{ marginBottom: "1em" }}>
