@@ -275,6 +275,7 @@ exports.getTutorCourseDetail = async (req, res) => {
   }
 };
 
+const studentNotifications = [];
 exports.updateCourseStatus = async (req, res) => {
   try {
     const { courseId } = req.params;
